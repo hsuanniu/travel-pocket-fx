@@ -37,11 +37,15 @@ export function CurrencyHeader({
             {baseLabel} → {targetLabel}
           </strong>
         </div>
-        <p>
-          {twdToJpyRate > 0
-            ? `1 TWD = ${formatRate(twdToJpyRate)} ${foreignUnit}`
-            : "請設定匯率"}
-        </p>
+        {twdToJpyRate > 0 ? (
+          <p>1 TWD = {formatRate(twdToJpyRate)} {foreignUnit}</p>
+        ) : (
+          <div className="first-step-hint">
+            <span>第一步</span>
+            <strong>請輸入今天匯率</strong>
+            <p>例如：1 台幣 = 5.0761 {foreignCurrency.name}</p>
+          </div>
+        )}
       </div>
       <div className="header-actions">
         <button className="icon-button" type="button" onClick={onSwapClick} aria-label="調換幣別">
