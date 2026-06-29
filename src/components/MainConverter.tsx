@@ -35,11 +35,13 @@ export function MainConverter({
   const targetLabel = targetCurrency === "TWD" ? targetCurrency : foreignUnit;
   const targetSymbol = targetCurrency === "TWD" ? target.symbol : foreignCurrency.symbol;
   const resultLabel = targetCurrency === "TWD" ? "約新台幣" : `約${foreignCurrency.name}`;
+  const amountSizeClass = getAmountSizeClass(amountInput);
 
   return (
     <section className="converter-panel" aria-label={`${baseLabel} 換算 ${targetLabel}`}>
       <div className="amount-row">
         <input
+          className={amountSizeClass}
           inputMode="decimal"
           value={amountInput}
           onChange={(event) => onChange(cleanNumericInput(event.target.value))}
@@ -64,4 +66,18 @@ export function MainConverter({
       )}
     </section>
   );
+}
+
+function getAmountSizeClass(value: string): string {
+  const digitCount = value.replace(/\D/g, "").length;
+
+  if (digitCount >= 8) {
+    return "amount-size-compact";
+  }
+
+  if (digitCount >= 6) {
+    return "amount-size-medium";
+  }
+
+  return "amount-size-large";
 }

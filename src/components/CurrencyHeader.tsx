@@ -28,6 +28,7 @@ export function CurrencyHeader({
   const targetFlag = exchangeRate.target === "TWD" ? currencies.TWD.flag : foreignCurrency.flag;
   const baseName = exchangeRate.base === "TWD" ? "台幣" : foreignCurrency.name;
   const targetName = exchangeRate.target === "TWD" ? "台幣" : foreignCurrency.name;
+  const hasRate = exchangeRate.rate > 0;
 
   return (
     <header className="currency-header">
@@ -38,8 +39,8 @@ export function CurrencyHeader({
             {baseName} → {targetFlag} {targetName}
           </strong>
         </div>
-        {twdToJpyRate > 0 ? (
-          <p>1 台幣 = {formatRateCompact(twdToJpyRate)} {foreignCurrency.name}</p>
+        {hasRate ? (
+          <p>1 {baseName} = {formatRateCompact(exchangeRate.rate)} {targetName}</p>
         ) : (
           <div className="first-step-hint">
             <span>第一步</span>

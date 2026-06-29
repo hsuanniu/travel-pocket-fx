@@ -190,6 +190,14 @@ button:disabled {
   transition: color 180ms var(--ease-out);
 }
 
+.amount-row input.amount-size-medium {
+  font-size: 50px;
+}
+
+.amount-row input.amount-size-compact {
+  font-size: 40px;
+}
+
 .amount-row input::placeholder {
   color: #64706e;
   font-size: 27px;
