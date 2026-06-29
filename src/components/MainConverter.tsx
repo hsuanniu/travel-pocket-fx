@@ -34,6 +34,7 @@ export function MainConverter({
   const baseLabel = baseCurrency === "TWD" ? baseCurrency : foreignUnit;
   const targetLabel = targetCurrency === "TWD" ? targetCurrency : foreignUnit;
   const targetSymbol = targetCurrency === "TWD" ? target.symbol : foreignCurrency.symbol;
+  const resultLabel = targetCurrency === "TWD" ? "約新台幣" : `約${foreignCurrency.name}`;
 
   return (
     <section className="converter-panel" aria-label={`${baseLabel} 換算 ${targetLabel}`}>
@@ -54,7 +55,7 @@ export function MainConverter({
       </div>
       {hasResult && (
         <div className="result-row">
-          <span>約</span>
+          <span>{resultLabel}</span>
           <strong>
             {targetSymbol ? `${targetSymbol} ` : ""}
             {formatNumber(roundedConvertedAmount)}

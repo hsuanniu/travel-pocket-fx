@@ -83,15 +83,19 @@ button:disabled {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 4px 2px 16px;
+  padding: 4px 2px 14px;
 }
 
 .currency-pair {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 16px;
+  gap: 7px;
+  font-size: 15px;
   animation: soft-slide-in 210ms var(--ease-out);
+}
+
+.currency-pair strong {
+  font-weight: 720;
 }
 
 .currency-header p,
@@ -151,16 +155,17 @@ button:disabled {
 }
 
 .clear-button {
-  width: 32px;
-  height: 32px;
-  color: #aeb8b5;
+  width: 30px;
+  height: 30px;
+  color: #8c9996;
+  opacity: 0.78;
 }
 
 .converter-panel {
-  padding: 20px 16px;
-  border: 1px solid var(--panel-border);
-  border-radius: 20px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.02));
+  padding: 22px 16px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.045);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018));
   animation: panel-enter 220ms var(--ease-out);
 }
 
@@ -168,7 +173,7 @@ button:disabled {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .amount-row input {
@@ -178,7 +183,7 @@ button:disabled {
   outline: 0;
   background: transparent;
   color: #f4faf8;
-  font-size: 56px;
+  font-size: 62px;
   font-weight: 780;
   line-height: 1;
   letter-spacing: 0;
@@ -187,30 +192,32 @@ button:disabled {
 
 .amount-row input::placeholder {
   color: #64706e;
-  font-size: 28px;
+  font-size: 27px;
   font-weight: 620;
 }
 
 .amount-row span {
-  color: #d8e0de;
-  font-size: 20px;
-  font-weight: 760;
+  color: #98a5a2;
+  font-size: 16px;
+  font-weight: 720;
 }
 
 .result-row {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
-  color: #aeb8b5;
+  display: grid;
+  gap: 5px;
+  margin-top: 18px;
+  color: var(--muted-text);
   animation: result-reveal 220ms var(--ease-out);
+}
+
+.result-row span {
+  font-size: 13px;
+  line-height: 1.2;
 }
 
 .result-row strong {
   color: #3ec18f;
-  font-size: 34px;
+  font-size: 42px;
   line-height: 1;
   font-weight: 800;
 }
@@ -241,6 +248,7 @@ button:disabled {
   display: grid;
   grid-template-columns: 1fr;
   gap: 14px;
+  margin-top: 16px;
 }
 
 .tool-panel {

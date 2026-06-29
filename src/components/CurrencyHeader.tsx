@@ -5,7 +5,7 @@ import {
   getForeignCurrencyUnit,
   type ForeignCurrencyDisplay,
 } from "../utils/displayCurrency";
-import { formatRate } from "../utils/formatMoney";
+import { formatRateCompact } from "../utils/formatMoney";
 
 type CurrencyHeaderProps = {
   exchangeRate: ExchangeRate;
@@ -23,22 +23,23 @@ export function CurrencyHeader({
   onSettingsClick,
 }: CurrencyHeaderProps) {
   const base = currencies[exchangeRate.base];
-  const target = currencies[exchangeRate.target];
   const foreignUnit = getForeignCurrencyUnit(foreignCurrency);
-  const baseLabel = exchangeRate.base === "TWD" ? base.code : foreignUnit;
-  const targetLabel = exchangeRate.target === "TWD" ? target.code : foreignUnit;
+  const baseFlag = exchangeRate.base === "TWD" ? base.flag : foreignCurrency.flag;
+  const targetFlag = exchangeRate.target === "TWD" ? currencies.TWD.flag : foreignCurrency.flag;
+  const baseName = exchangeRate.base === "TWD" ? "台幣" : foreignCurrency.name;
+  const targetName = exchangeRate.target === "TWD" ? "台幣" : foreignCurrency.name;
 
   return (
     <header className="currency-header">
       <div>
         <div className="currency-pair">
-          <span>{exchangeRate.base === "TWD" ? base.flag : foreignCurrency.flag}</span>
+          <span>{baseFlag}</span>
           <strong>
-            {baseLabel} → {targetLabel}
+            {baseName} → {targetFlag} {targetName}
           </strong>
         </div>
         {twdToJpyRate > 0 ? (
-          <p>1 TWD = {formatRate(twdToJpyRate)} {foreignUnit}</p>
+          <p>1 台幣 = {formatRateCompact(twdToJpyRate)} {foreignCurrency.name}</p>
         ) : (
           <div className="first-step-hint">
             <span>第一步</span>

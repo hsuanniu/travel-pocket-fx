@@ -2,7 +2,6 @@ import { useState } from "react";
 import { ComparePanel } from "../components/ComparePanel";
 import { CurrencyHeader } from "../components/CurrencyHeader";
 import { MainConverter } from "../components/MainConverter";
-import { QuickAmountGrid } from "../components/QuickAmountGrid";
 import { RateSheet } from "../components/RateSheet";
 import { SplitPanel } from "../components/SplitPanel";
 import { useCalculatorStore } from "../store/calculatorStore";
@@ -32,8 +31,6 @@ export function App() {
           onChange={calculator.setAmountInput}
           onClear={calculator.clearAmount}
         />
-
-        <QuickAmountGrid onPick={calculator.setAmountInput} />
 
         <div className="tool-grid">
           <ComparePanel
