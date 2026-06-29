@@ -28,6 +28,7 @@ export function App() {
           targetCurrency={calculator.activeExchangeRate.target}
           foreignCurrency={calculator.foreignCurrency}
           roundedConvertedAmount={calculator.roundedConvertedAmount}
+          hasResult={calculator.hasConversionResult}
           onChange={calculator.setAmountInput}
           onClear={calculator.clearAmount}
         />
@@ -42,6 +43,14 @@ export function App() {
           <SplitPanel
             exchangeRate={calculator.exchangeRate}
             foreignCurrency={calculator.foreignCurrency}
+            total={calculator.splitTotalAmount}
+            people={calculator.splitPeople}
+            itemName={calculator.splitItemName}
+            date={calculator.splitDate}
+            onTotalChange={calculator.setSplitTotalAmount}
+            onPeopleChange={calculator.setSplitPeople}
+            onItemNameChange={calculator.setSplitItemName}
+            onDateChange={calculator.setSplitDate}
           />
         </div>
 

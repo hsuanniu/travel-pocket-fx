@@ -14,6 +14,7 @@ type MainConverterProps = {
   targetCurrency: CurrencyCode;
   foreignCurrency: ForeignCurrencyDisplay;
   roundedConvertedAmount: number;
+  hasResult: boolean;
   onChange: (value: string) => void;
   onClear: () => void;
 };
@@ -24,6 +25,7 @@ export function MainConverter({
   targetCurrency,
   foreignCurrency,
   roundedConvertedAmount,
+  hasResult,
   onChange,
   onClear,
 }: MainConverterProps) {
@@ -41,7 +43,7 @@ export function MainConverter({
           value={amountInput}
           onChange={(event) => onChange(cleanNumericInput(event.target.value))}
           aria-label={`${baseLabel} 金額`}
-          placeholder="0"
+          placeholder="請輸入金額"
         />
         <span>{baseLabel}</span>
         {amountInput && (
@@ -50,13 +52,15 @@ export function MainConverter({
           </button>
         )}
       </div>
-      <div className="result-row">
-        <span>約</span>
-        <strong>
-          {targetSymbol ? `${targetSymbol} ` : ""}
-          {formatNumber(roundedConvertedAmount)}
-        </strong>
-      </div>
+      {hasResult && (
+        <div className="result-row">
+          <span>約</span>
+          <strong>
+            {targetSymbol ? `${targetSymbol} ` : ""}
+            {formatNumber(roundedConvertedAmount)}
+          </strong>
+        </div>
+      )}
     </section>
   );
 }

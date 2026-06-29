@@ -132,6 +132,8 @@ button {
 
 .amount-row input::placeholder {
   color: #566160;
+  font-size: 28px;
+  font-weight: 650;
 }
 
 .amount-row span {

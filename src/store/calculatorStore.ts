@@ -25,6 +25,11 @@ export type CalculatorState = {
   foreignCurrencyCode: ForeignCurrencyCode;
   customForeignCurrencyName: string;
   roundedConvertedAmount: number;
+  hasConversionResult: boolean;
+  splitTotalAmount: string;
+  splitPeople: string;
+  splitItemName: string;
+  splitDate: string;
   setAmountInput: (value: string) => void;
   appendAmount: (value: string) => void;
   clearAmount: () => void;
@@ -33,11 +38,17 @@ export type CalculatorState = {
   saveRate: () => boolean;
   setForeignCurrencyCode: (value: ForeignCurrencyCode) => void;
   setCustomForeignCurrencyName: (value: string) => void;
+  setSplitTotalAmount: (value: string) => void;
+  setSplitPeople: (value: string) => void;
+  setSplitItemName: (value: string) => void;
+  setSplitDate: (value: string) => void;
 };
 
 export function useCalculatorStore(): CalculatorState {
   const [appState, setAppState] = useState<FxAppState>(() => loadAppState());
-  const [rateInput, setRateInput] = useState(() => String(appState.exchangeRate));
+  const [rateInput, setRateInput] = useState(() =>
+    appState.exchangeRate > 0 ? String(appState.exchangeRate) : "",
+  );
 
   const numericAmount = toNumber(appState.inputAmount);
   const activeExchangeRate = useMemo(() => getActiveExchangeRate(appState), [appState]);
@@ -60,6 +71,7 @@ export function useCalculatorStore(): CalculatorState {
     [numericAmount, appState.fromCurrency, appState.toCurrency, appState.exchangeRate],
   );
   const roundedConvertedAmount = useMemo(() => cowRoundAmount(convertedAmount), [convertedAmount]);
+  const hasConversionResult = numericAmount > 0 && appState.exchangeRate > 0;
 
   useEffect(() => {
     saveAppState(appState);
@@ -106,6 +118,11 @@ export function useCalculatorStore(): CalculatorState {
     foreignCurrencyCode: appState.foreignCurrencyCode,
     customForeignCurrencyName: appState.customForeignCurrencyName,
     roundedConvertedAmount,
+    hasConversionResult,
+    splitTotalAmount: appState.splitTotalAmount,
+    splitPeople: appState.splitPeople,
+    splitItemName: appState.splitItemName,
+    splitDate: appState.splitDate,
     setAmountInput: (value) =>
       setAppState((current) => ({
         ...current,
@@ -125,6 +142,26 @@ export function useCalculatorStore(): CalculatorState {
       setAppState((current) => ({
         ...current,
         customForeignCurrencyName: value,
+      })),
+    setSplitTotalAmount: (value) =>
+      setAppState((current) => ({
+        ...current,
+        splitTotalAmount: value,
+      })),
+    setSplitPeople: (value) =>
+      setAppState((current) => ({
+        ...current,
+        splitPeople: value,
+      })),
+    setSplitItemName: (value) =>
+      setAppState((current) => ({
+        ...current,
+        splitItemName: value,
+      })),
+    setSplitDate: (value) =>
+      setAppState((current) => ({
+        ...current,
+        splitDate: value,
       })),
   };
 }

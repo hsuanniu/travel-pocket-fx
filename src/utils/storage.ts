@@ -15,6 +15,10 @@ const keys = {
   lastDirection: `${storagePrefix}:lastDirection`,
   foreignCurrencyCode: `${storagePrefix}:foreignCurrencyCode`,
   customForeignCurrencyName: `${storagePrefix}:customForeignCurrencyName`,
+  splitTotalAmount: `${storagePrefix}:splitTotalAmount`,
+  splitPeople: `${storagePrefix}:splitPeople`,
+  splitItemName: `${storagePrefix}:splitItemName`,
+  splitDate: `${storagePrefix}:splitDate`,
 } as const;
 
 const legacyKeys = {
@@ -26,19 +30,27 @@ const legacyKeys = {
 export const defaultAppState: FxAppState = {
   fromCurrency: "TWD",
   toCurrency: "JPY",
-  inputAmount: "1000",
-  exchangeRate: 4.8,
+  inputAmount: "",
+  exchangeRate: 0,
   lastDirection: "TWD_TO_JPY",
   foreignCurrencyCode: "JPY",
   customForeignCurrencyName: "",
+  splitTotalAmount: "",
+  splitPeople: "",
+  splitItemName: "",
+  splitDate: getTodayInputValue(),
 };
 
 export function loadAppState(): FxAppState {
+  if (!hasSavedAppState() && !hasLegacyAppState()) {
+    return defaultAppState;
+  }
+
   const storedRate = readNumber(keys.exchangeRate);
   const fromCurrency = readCurrency(keys.fromCurrency);
   const toCurrency = readCurrency(keys.toCurrency);
 
-  if (storedRate && fromCurrency && toCurrency) {
+  if (storedRate !== null && fromCurrency && toCurrency) {
     const lastDirection = readDirection(keys.lastDirection) ?? getDirection(fromCurrency, toCurrency);
 
     return {
@@ -50,6 +62,10 @@ export function loadAppState(): FxAppState {
       foreignCurrencyCode: readForeignCurrency(keys.foreignCurrencyCode) ?? defaultAppState.foreignCurrencyCode,
       customForeignCurrencyName:
         readString(keys.customForeignCurrencyName) ?? defaultAppState.customForeignCurrencyName,
+      splitTotalAmount: readString(keys.splitTotalAmount) ?? defaultAppState.splitTotalAmount,
+      splitPeople: readString(keys.splitPeople) ?? defaultAppState.splitPeople,
+      splitItemName: readString(keys.splitItemName) ?? defaultAppState.splitItemName,
+      splitDate: readString(keys.splitDate) ?? defaultAppState.splitDate,
     };
   }
 
@@ -65,6 +81,10 @@ export function saveAppState(state: FxAppState): void {
   writeString(keys.lastDirection, state.lastDirection);
   writeString(keys.foreignCurrencyCode, state.foreignCurrencyCode);
   writeString(keys.customForeignCurrencyName, state.customForeignCurrencyName);
+  writeString(keys.splitTotalAmount, state.splitTotalAmount);
+  writeString(keys.splitPeople, state.splitPeople);
+  writeString(keys.splitItemName, state.splitItemName);
+  writeString(keys.splitDate, state.splitDate);
 }
 
 function migrateLegacyState(): FxAppState {
@@ -87,6 +107,10 @@ function migrateLegacyState(): FxAppState {
     lastDirection: getDirection(fromCurrency, toCurrency),
     foreignCurrencyCode: defaultAppState.foreignCurrencyCode,
     customForeignCurrencyName: defaultAppState.customForeignCurrencyName,
+    splitTotalAmount: defaultAppState.splitTotalAmount,
+    splitPeople: defaultAppState.splitPeople,
+    splitItemName: defaultAppState.splitItemName,
+    splitDate: defaultAppState.splitDate,
   };
 
   saveAppState(migratedState);
@@ -125,7 +149,15 @@ function readDirection(key: string): FxDirection | null {
 
 function readNumber(key: string): number | null {
   const value = Number(readString(key));
-  return Number.isFinite(value) && value > 0 ? value : null;
+  return Number.isFinite(value) && value >= 0 ? value : null;
+}
+
+function hasSavedAppState(): boolean {
+  return readString(keys.stateVersion) !== null || readString(keys.exchangeRate) !== null;
+}
+
+function hasLegacyAppState(): boolean {
+  return readString(legacyKeys.rate) !== null || readString(legacyKeys.amount) !== null;
 }
 
 function readString(key: string): string | null {
@@ -151,4 +183,13 @@ function readJson<T>(key: string): T | null {
   } catch {
     return null;
   }
+}
+
+function getTodayInputValue(): string {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+
+  return `${year}/${month}/${day}`;
 }

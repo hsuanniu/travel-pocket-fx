@@ -15,14 +15,29 @@ import { createSplitShareText } from "../utils/shareText";
 type SplitPanelProps = {
   exchangeRate: number;
   foreignCurrency: ForeignCurrencyDisplay;
+  total: string;
+  people: string;
+  itemName: string;
+  date: string;
+  onTotalChange: (value: string) => void;
+  onPeopleChange: (value: string) => void;
+  onItemNameChange: (value: string) => void;
+  onDateChange: (value: string) => void;
 };
 
-export function SplitPanel({ exchangeRate, foreignCurrency }: SplitPanelProps) {
+export function SplitPanel({
+  exchangeRate,
+  foreignCurrency,
+  total,
+  people,
+  itemName,
+  date,
+  onTotalChange,
+  onPeopleChange,
+  onItemNameChange,
+  onDateChange,
+}: SplitPanelProps) {
   const foreignUnit = getForeignCurrencyUnit(foreignCurrency);
-  const [total, setTotal] = useState("3980");
-  const [people, setPeople] = useState("4");
-  const [itemName, setItemName] = useState("");
-  const [date, setDate] = useState(() => getTodayInputValue());
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const totalJpy = toNumber(total);
@@ -86,7 +101,8 @@ export function SplitPanel({ exchangeRate, foreignCurrency }: SplitPanelProps) {
         <input
           inputMode="decimal"
           value={total}
-          onChange={(event) => setTotal(cleanNumericInput(event.target.value))}
+          placeholder="例如：40000"
+          onChange={(event) => onTotalChange(cleanNumericInput(event.target.value))}
         />
       </label>
       <label>
@@ -94,7 +110,8 @@ export function SplitPanel({ exchangeRate, foreignCurrency }: SplitPanelProps) {
         <input
           inputMode="numeric"
           value={people}
-          onChange={(event) => setPeople(cleanNumericInput(event.target.value))}
+          placeholder="例如：4"
+          onChange={(event) => onPeopleChange(cleanNumericInput(event.target.value))}
         />
       </label>
       <button
@@ -112,20 +129,27 @@ export function SplitPanel({ exchangeRate, foreignCurrency }: SplitPanelProps) {
             消費項目
             <input
               value={itemName}
-              onChange={(event) => setItemName(event.target.value)}
+              onChange={(event) => onItemNameChange(event.target.value)}
               placeholder="晚餐、超市、咖啡、計程車"
             />
           </label>
           <label>
             日期
-            <input value={date} type="date" onChange={(event) => setDate(event.target.value)} />
+            <input
+              value={date}
+              inputMode="numeric"
+              onChange={(event) => onDateChange(event.target.value)}
+              placeholder="YYYY/MM/DD"
+            />
           </label>
         </div>
       )}
-      <div className="panel-result">
-        <strong>每人約 NT$ {formatNumber(perPersonTwd)}</strong>
-        <span>總計約 NT$ {formatNumber(totalTwd)}</span>
-      </div>
+      {hasShareResult && (
+        <div className="panel-result">
+          <strong>每人約 NT$ {formatNumber(perPersonTwd)}</strong>
+          <span>總計約 NT$ {formatNumber(totalTwd)}</span>
+        </div>
+      )}
       <div className="share-actions" aria-label="費用分攤分享">
         <button type="button" onClick={handleShare} disabled={!hasShareResult}>
           <Send size={16} />
@@ -135,13 +159,4 @@ export function SplitPanel({ exchangeRate, foreignCurrency }: SplitPanelProps) {
       {statusMessage && <p className="status-message">{statusMessage}</p>}
     </section>
   );
-}
-
-function getTodayInputValue(): string {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
 }

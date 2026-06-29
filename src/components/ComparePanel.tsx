@@ -17,9 +17,10 @@ type ComparePanelProps = {
 
 export function ComparePanel({ exchangeRate, foreignCurrency }: ComparePanelProps) {
   const foreignUnit = getForeignCurrencyUnit(foreignCurrency);
-  const [foreignPrice, setForeignPrice] = useState("49800");
-  const [taiwanPrice, setTaiwanPrice] = useState("8990");
+  const [foreignPrice, setForeignPrice] = useState("");
+  const [taiwanPrice, setTaiwanPrice] = useState("");
   const foreignTwdPrice = cowRoundTwd(convertJpyToTwd(toNumber(foreignPrice), exchangeRate));
+  const hasComparisonResult = foreignTwdPrice > 0 && toNumber(taiwanPrice) > 0;
   const comparison = useMemo(
     () => comparePrices(foreignTwdPrice, toNumber(taiwanPrice)),
     [foreignTwdPrice, taiwanPrice],
@@ -43,6 +44,7 @@ export function ComparePanel({ exchangeRate, foreignCurrency }: ComparePanelProp
         <input
           inputMode="decimal"
           value={foreignPrice}
+          placeholder={`例如：1000`}
           onChange={(event) => setForeignPrice(cleanNumericInput(event.target.value))}
         />
       </label>
@@ -51,16 +53,19 @@ export function ComparePanel({ exchangeRate, foreignCurrency }: ComparePanelProp
         <input
           inputMode="decimal"
           value={taiwanPrice}
+          placeholder="例如：200"
           onChange={(event) => setTaiwanPrice(cleanNumericInput(event.target.value))}
         />
       </label>
-      <div className="panel-result">
-        <strong>{message}</strong>
-        <span>
-          {foreignCurrency.name}約 NT$ {formatNumber(foreignTwdPrice)} · 差{" "}
-          {formatPercent(comparison.savingPercent)}
-        </span>
-      </div>
+      {hasComparisonResult && (
+        <div className="panel-result">
+          <strong>{message}</strong>
+          <span>
+            {foreignCurrency.name}約 NT$ {formatNumber(foreignTwdPrice)} · 差{" "}
+            {formatPercent(comparison.savingPercent)}
+          </span>
+        </div>
+      )}
     </section>
   );
 }

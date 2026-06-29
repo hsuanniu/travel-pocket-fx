@@ -11,6 +11,10 @@ export type FxAppState = {
   lastDirection: FxDirection;
   foreignCurrencyCode: ForeignCurrencyCode;
   customForeignCurrencyName: string;
+  splitTotalAmount: string;
+  splitPeople: string;
+  splitItemName: string;
+  splitDate: string;
 };
 
 export function getDirection(fromCurrency: CurrencyCode, toCurrency: CurrencyCode): FxDirection {
@@ -68,7 +72,9 @@ export function getActiveExchangeRate(state: FxAppState): ExchangeRate {
   const directionRate =
     state.fromCurrency === "TWD" && state.toCurrency === "JPY"
       ? state.exchangeRate
-      : 1 / state.exchangeRate;
+      : state.exchangeRate > 0
+        ? 1 / state.exchangeRate
+        : 0;
 
   return {
     base: state.fromCurrency,

@@ -56,6 +56,7 @@ export function RateSheet({
             value={rateInput}
             onChange={(event) => onRateChange(event.target.value)}
             aria-label={`1 台幣可換多少${foreignCurrency.name}`}
+            placeholder="例如：5.0761"
             autoFocus
           />
           <span>{foreignUnit}</span>

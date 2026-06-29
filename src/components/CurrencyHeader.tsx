@@ -37,7 +37,11 @@ export function CurrencyHeader({
             {baseLabel} → {targetLabel}
           </strong>
         </div>
-        <p>1 TWD = {formatRate(twdToJpyRate)} {foreignUnit}</p>
+        <p>
+          {twdToJpyRate > 0
+            ? `1 TWD = ${formatRate(twdToJpyRate)} ${foreignUnit}`
+            : "請設定匯率"}
+        </p>
       </div>
       <div className="header-actions">
         <button className="icon-button" type="button" onClick={onSwapClick} aria-label="調換幣別">
