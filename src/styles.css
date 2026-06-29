@@ -171,7 +171,7 @@ button:disabled {
 
 .amount-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) 126px;
   align-items: center;
   gap: 8px;
 }
@@ -191,11 +191,11 @@ button:disabled {
 }
 
 .amount-row input.amount-size-medium {
-  font-size: 50px;
+  font-size: 46px;
 }
 
 .amount-row input.amount-size-compact {
-  font-size: 40px;
+  font-size: 34px;
 }
 
 .amount-row input::placeholder {
@@ -204,10 +204,19 @@ button:disabled {
   font-weight: 620;
 }
 
-.amount-row span {
+.amount-actions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.amount-actions span {
   color: #98a5a2;
   font-size: 16px;
   font-weight: 720;
+  white-space: nowrap;
 }
 
 .result-row {

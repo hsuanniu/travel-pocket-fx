@@ -95,7 +95,7 @@ export function SplitPanel({
     const result = await shareText(splitShareText);
 
     if (result === "copied") {
-      setStatusMessage("✅ 已複製到剪貼簿，請貼到 LINE 或其他 App。");
+      setStatusMessage("✅ 已複製到剪貼簿，請貼到 LINE、WeChat 或其他 App。");
     }
   }
 

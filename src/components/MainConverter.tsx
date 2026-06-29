@@ -48,12 +48,14 @@ export function MainConverter({
           aria-label={`${baseLabel} 金額`}
           placeholder="請輸入金額"
         />
-        <span>{baseLabel}</span>
-        {amountInput && (
-          <button className="clear-button" type="button" onClick={onClear} aria-label="清除金額">
-            <X size={18} />
-          </button>
-        )}
+        <div className="amount-actions">
+          <span>{baseLabel}</span>
+          {amountInput && (
+            <button className="clear-button" type="button" onClick={onClear} aria-label="清除金額">
+              <X size={18} />
+            </button>
+          )}
+        </div>
       </div>
       {hasResult && (
         <div className="result-row">

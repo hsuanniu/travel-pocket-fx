@@ -7,7 +7,6 @@ export async function shareText(text: string): Promise<ShareResult> {
     try {
       await navigator.share({
         text,
-        title: "費用分攤",
       });
       return "shared";
     } catch (error) {
