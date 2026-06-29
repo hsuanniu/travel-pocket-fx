@@ -1,4 +1,5 @@
-import { Check, X } from "lucide-react";
+import { ArrowLeftRight, Check, X } from "lucide-react";
+import type { ExchangeRate } from "../features/currency/currencyTypes";
 import {
   foreignCurrencyOptions,
   getForeignCurrencyUnit,
@@ -12,9 +13,11 @@ type RateSheetProps = {
   foreignCurrency: ForeignCurrencyDisplay;
   foreignCurrencyCode: ForeignCurrencyCode;
   customForeignCurrencyName: string;
+  activeExchangeRate: ExchangeRate;
   onRateChange: (value: string) => void;
   onSave: () => boolean;
   onClose: () => void;
+  onSwapRateDirection: () => void;
   onForeignCurrencyChange: (value: ForeignCurrencyCode) => void;
   onCustomForeignCurrencyNameChange: (value: string) => void;
 };
@@ -25,9 +28,11 @@ export function RateSheet({
   foreignCurrency,
   foreignCurrencyCode,
   customForeignCurrencyName,
+  activeExchangeRate,
   onRateChange,
   onSave,
   onClose,
+  onSwapRateDirection,
   onForeignCurrencyChange,
   onCustomForeignCurrencyNameChange,
 }: RateSheetProps) {
@@ -36,6 +41,11 @@ export function RateSheet({
   }
 
   const foreignUnit = getForeignCurrencyUnit(foreignCurrency);
+  const isBaseTwd = activeExchangeRate.base === "TWD";
+  const baseName = isBaseTwd ? "台幣" : foreignCurrency.name;
+  const targetName = isBaseTwd ? foreignCurrency.name : "台幣";
+  const baseCode = isBaseTwd ? "TWD" : foreignUnit;
+  const targetCode = isBaseTwd ? foreignUnit : "TWD";
 
   return (
     <div className="sheet-backdrop" role="presentation">
@@ -49,18 +59,29 @@ export function RateSheet({
             <X size={20} />
           </button>
         </div>
-        <label className="rate-input-label">
-          <span>1 TWD =</span>
-          <input
-            inputMode="decimal"
-            value={rateInput}
-            onChange={(event) => onRateChange(event.target.value)}
-            aria-label={`1 台幣可換多少${foreignCurrency.name}`}
-            placeholder="例如：5.0761"
-            autoFocus
-          />
-          <span>{foreignUnit}</span>
-        </label>
+        <div className="rate-editor" aria-label="匯率方向與數值">
+          <div className="rate-editor-row">
+            <span className="rate-side">1 {baseName}</span>
+            <button
+              className="mini-swap-button"
+              type="button"
+              onClick={onSwapRateDirection}
+              aria-label="交換匯率方向"
+            >
+              <ArrowLeftRight size={15} />
+            </button>
+            <input
+              inputMode="decimal"
+              value={rateInput}
+              onChange={(event) => onRateChange(event.target.value)}
+              aria-label={`1 ${baseName}可換多少${targetName}`}
+              placeholder={isBaseTwd ? "例如：5.0761" : "例如：0.19753"}
+              autoFocus
+            />
+            <span className="rate-side">{targetName}</span>
+          </div>
+          <p>{baseCode} / {targetCode}</p>
+        </div>
         <label className="currency-select-label">
           外幣顯示名稱
           <select

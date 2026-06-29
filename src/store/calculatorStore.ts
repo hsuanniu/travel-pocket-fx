@@ -36,6 +36,7 @@ export type CalculatorState = {
   swapDirection: () => void;
   setRateInput: (value: string) => void;
   saveRate: () => boolean;
+  swapRateDirection: () => void;
   setForeignCurrencyCode: (value: ForeignCurrencyCode) => void;
   setCustomForeignCurrencyName: (value: string) => void;
   setSplitTotalAmount: (value: string) => void;
@@ -47,7 +48,7 @@ export type CalculatorState = {
 export function useCalculatorStore(): CalculatorState {
   const [appState, setAppState] = useState<FxAppState>(() => loadAppState());
   const [rateInput, setRateInput] = useState(() =>
-    appState.exchangeRate > 0 ? String(appState.exchangeRate) : "",
+    getDisplayRateInput(appState),
   );
 
   const numericAmount = toNumber(appState.inputAmount);
@@ -92,7 +93,11 @@ export function useCalculatorStore(): CalculatorState {
   }
 
   function swapDirection(): void {
-    setAppState((current) => swapFxDirection(current));
+    setAppState((current) => {
+      const nextState = swapFxDirection(current);
+      setRateInput(getDisplayRateInput(nextState));
+      return nextState;
+    });
   }
 
   function saveRate(): boolean {
@@ -104,9 +109,17 @@ export function useCalculatorStore(): CalculatorState {
 
     setAppState((current) => ({
       ...current,
-      exchangeRate: nextRate,
+      exchangeRate: current.fromCurrency === "TWD" ? nextRate : 1 / nextRate,
     }));
     return true;
+  }
+
+  function swapRateDirection(): void {
+    setAppState((current) => {
+      const nextState = swapFxDirection(current);
+      setRateInput(getDisplayRateInput(nextState));
+      return nextState;
+    });
   }
 
   return {
@@ -133,6 +146,7 @@ export function useCalculatorStore(): CalculatorState {
     swapDirection,
     setRateInput,
     saveRate,
+    swapRateDirection,
     setForeignCurrencyCode: (value) =>
       setAppState((current) => ({
         ...current,
@@ -164,4 +178,13 @@ export function useCalculatorStore(): CalculatorState {
         splitDate: value,
       })),
   };
+}
+
+function getDisplayRateInput(state: FxAppState): string {
+  if (state.exchangeRate <= 0) {
+    return "";
+  }
+
+  const displayRate = state.fromCurrency === "TWD" ? state.exchangeRate : 1 / state.exchangeRate;
+  return Number(displayRate.toFixed(5)).toString();
 }

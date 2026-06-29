@@ -39,8 +39,9 @@ export function App() {
           />
           <SplitPanel
             exchangeRate={calculator.exchangeRate}
-            foreignCurrency={calculator.foreignCurrency}
-            total={calculator.splitTotalAmount}
+          foreignCurrency={calculator.foreignCurrency}
+          activeExchangeRate={calculator.activeExchangeRate}
+          total={calculator.splitTotalAmount}
             people={calculator.splitPeople}
             itemName={calculator.splitItemName}
             date={calculator.splitDate}
@@ -57,9 +58,11 @@ export function App() {
           foreignCurrency={calculator.foreignCurrency}
           foreignCurrencyCode={calculator.foreignCurrencyCode}
           customForeignCurrencyName={calculator.customForeignCurrencyName}
+          activeExchangeRate={calculator.activeExchangeRate}
           onRateChange={calculator.setRateInput}
           onSave={calculator.saveRate}
           onClose={() => setIsRateSheetOpen(false)}
+          onSwapRateDirection={calculator.swapRateDirection}
           onForeignCurrencyChange={calculator.setForeignCurrencyCode}
           onCustomForeignCurrencyNameChange={calculator.setCustomForeignCurrencyName}
         />

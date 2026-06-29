@@ -4,6 +4,9 @@ export type SplitShareDetails = {
   itemName?: string;
   date: string;
   foreignCurrencyName: string;
+  rateBaseName: string;
+  rateTargetName: string;
+  displayExchangeRate: number;
   totalJpy: number;
   people: number;
   perPersonJpy: number;
@@ -26,7 +29,7 @@ export function createSplitShareText(details: SplitShareDetails): string {
     `人數：${formatNumber(details.people)} 人`,
     `每人：${formatNumber(details.perPersonJpy)} ${details.foreignCurrencyName}（約 ${formatNumber(details.perPersonTwd)} 台幣）`,
     "",
-    `匯率：1 台幣 = ${formatRateForShare(details.exchangeRate)} ${details.foreignCurrencyName}`,
+    `匯率：1 ${details.rateBaseName} = ${formatRateForShare(details.displayExchangeRate)} ${details.rateTargetName}`,
     "",
     "———",
     "🐮 No Bull. Just Math.",

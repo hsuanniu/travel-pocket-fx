@@ -1,5 +1,6 @@
 import { ChevronDown, ChevronUp, Send, UsersRound } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import type { ExchangeRate } from "../features/currency/currencyTypes";
 import { cowRoundTwd } from "../features/rounding/cowRounding";
 import { splitBill } from "../features/split/splitBill";
 import {
@@ -15,6 +16,7 @@ import { createSplitShareText } from "../utils/shareText";
 type SplitPanelProps = {
   exchangeRate: number;
   foreignCurrency: ForeignCurrencyDisplay;
+  activeExchangeRate: ExchangeRate;
   total: string;
   people: string;
   itemName: string;
@@ -28,6 +30,7 @@ type SplitPanelProps = {
 export function SplitPanel({
   exchangeRate,
   foreignCurrency,
+  activeExchangeRate,
   total,
   people,
   itemName,
@@ -52,6 +55,9 @@ export function SplitPanel({
         itemName,
         date,
         foreignCurrencyName: foreignCurrency.name,
+        rateBaseName: activeExchangeRate.base === "TWD" ? "台幣" : foreignCurrency.name,
+        rateTargetName: activeExchangeRate.target === "TWD" ? "台幣" : foreignCurrency.name,
+        displayExchangeRate: activeExchangeRate.rate,
         totalJpy,
         people: peopleCount,
         perPersonJpy,
@@ -62,6 +68,9 @@ export function SplitPanel({
       itemName,
       date,
       foreignCurrency.name,
+      activeExchangeRate.base,
+      activeExchangeRate.target,
+      activeExchangeRate.rate,
       totalJpy,
       peopleCount,
       perPersonJpy,
