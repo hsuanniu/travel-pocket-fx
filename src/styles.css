@@ -7,6 +7,10 @@
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --press-scale: 0.975;
+  --panel-border: rgba(255, 255, 255, 0.08);
+  --muted-text: #9eaaa7;
 }
 
 * {
@@ -36,6 +40,22 @@ select {
 button {
   color: inherit;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition:
+    transform 160ms var(--ease-out),
+    border-color 180ms var(--ease-out),
+    background 180ms var(--ease-out),
+    box-shadow 180ms var(--ease-out),
+    opacity 180ms var(--ease-out);
+}
+
+button:active:not(:disabled) {
+  transform: scale(var(--press-scale));
+}
+
+button:disabled {
+  cursor: not-allowed;
 }
 
 .app-shell {
@@ -43,15 +63,15 @@ button {
   min-height: 100vh;
   display: flex;
   justify-content: center;
-  padding: 14px 10px 24px;
+  padding: 14px 10px 28px;
 }
 
 .phone-app {
   position: relative;
   width: min(100%, 390px);
   min-height: calc(100vh - 28px);
-  padding: 16px 14px 18px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 16px 14px 20px;
+  border: 1px solid var(--panel-border);
   border-radius: 28px;
   background: rgba(17, 24, 25, 0.95);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
@@ -63,7 +83,7 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 4px 2px 14px;
+  padding: 4px 2px 16px;
 }
 
 .currency-pair {
@@ -71,12 +91,13 @@ button {
   align-items: center;
   gap: 8px;
   font-size: 16px;
+  animation: soft-slide-in 210ms var(--ease-out);
 }
 
 .currency-header p,
 .sheet-title p {
   margin: 4px 0 0;
-  color: #9eaaa7;
+  color: var(--muted-text);
   font-size: 13px;
 }
 
@@ -107,7 +128,7 @@ button {
 
 .header-actions {
   display: flex;
-  gap: 8px;
+  gap: 9px;
 }
 
 .icon-button,
@@ -117,9 +138,16 @@ button {
   height: 40px;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--panel-border);
   border-radius: 50%;
-  background: #1b2325;
+  background: linear-gradient(180deg, #20292b, #182022);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.icon-button:hover,
+.clear-button:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: linear-gradient(180deg, #263033, #1b2426);
 }
 
 .clear-button {
@@ -129,10 +157,11 @@ button {
 }
 
 .converter-panel {
-  padding: 18px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 20px 16px;
+  border: 1px solid var(--panel-border);
   border-radius: 20px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.02));
+  animation: panel-enter 220ms var(--ease-out);
 }
 
 .amount-row {
@@ -150,21 +179,22 @@ button {
   background: transparent;
   color: #f4faf8;
   font-size: 56px;
-  font-weight: 750;
+  font-weight: 780;
   line-height: 1;
   letter-spacing: 0;
+  transition: color 180ms var(--ease-out);
 }
 
 .amount-row input::placeholder {
-  color: #566160;
+  color: #64706e;
   font-size: 28px;
-  font-weight: 650;
+  font-weight: 620;
 }
 
 .amount-row span {
   color: #d8e0de;
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 760;
 }
 
 .result-row {
@@ -175,41 +205,51 @@ button {
   padding-top: 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.07);
   color: #aeb8b5;
+  animation: result-reveal 220ms var(--ease-out);
 }
 
 .result-row strong {
   color: #3ec18f;
-  font-size: 32px;
+  font-size: 34px;
   line-height: 1;
+  font-weight: 800;
 }
 
 .quick-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin: 12px 0;
+  gap: 9px;
+  margin: 14px 0;
 }
 
 .quick-grid button {
-  min-height: 42px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 10px;
-  background: #20282a;
+  min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 11px;
+  background: linear-gradient(180deg, #232c2f, #1c2426);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.quick-grid button:hover {
+  border-color: rgba(62, 193, 143, 0.28);
+  background: linear-gradient(180deg, #273235, #20292b);
 }
 
 .tool-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
+  gap: 14px;
 }
 
 .tool-panel {
   min-width: 0;
-  padding: 14px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+  padding: 16px 13px;
+  border: 1px solid var(--panel-border);
+  border-radius: 18px;
   background: rgba(255, 255, 255, 0.035);
+  animation: panel-enter 220ms var(--ease-out);
 }
 
 .accent-green {
@@ -224,7 +264,7 @@ button {
   display: flex;
   align-items: center;
   gap: 7px;
-  margin-bottom: 12px;
+  margin-bottom: 13px;
 }
 
 .panel-title h2 {
@@ -245,41 +285,56 @@ label {
   display: block;
   color: #aeb8b5;
   font-size: 12px;
+  line-height: 1.35;
 }
 
 label + label {
-  margin-top: 9px;
+  margin-top: 11px;
 }
 
 label input {
   width: 100%;
-  min-height: 36px;
+  min-height: 40px;
   margin-top: 5px;
-  padding: 8px 9px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
+  padding: 9px 10px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
   outline: 0;
   background: #12181a;
   color: #f1f7f5;
   font-size: 17px;
+  transition:
+    border-color 180ms var(--ease-out),
+    background 180ms var(--ease-out),
+    box-shadow 180ms var(--ease-out);
 }
 
 label select {
   width: 100%;
-  min-height: 38px;
+  min-height: 40px;
   margin-top: 5px;
-  padding: 8px 9px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
+  padding: 9px 10px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
   outline: 0;
   background: #12181a;
   color: #f1f7f5;
   font-size: 15px;
+  transition:
+    border-color 180ms var(--ease-out),
+    background 180ms var(--ease-out),
+    box-shadow 180ms var(--ease-out);
 }
 
 label input:focus,
 label select:focus {
   border-color: rgba(62, 193, 143, 0.8);
+  background: #10191a;
+  box-shadow: 0 0 0 3px rgba(62, 193, 143, 0.1);
+}
+
+label input::placeholder {
+  color: #65706e;
 }
 
 .currency-select-label {
@@ -303,7 +358,7 @@ label select:focus {
 .more-toggle {
   display: inline-flex;
   width: 100%;
-  min-height: 38px;
+  min-height: 42px;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
@@ -317,11 +372,13 @@ label select:focus {
 }
 
 .optional-fields {
-  margin-top: 2px;
-  padding: 10px;
+  margin-top: 4px;
+  padding: 11px;
   border: 1px solid rgba(242, 189, 88, 0.14);
-  border-radius: 12px;
+  border-radius: 14px;
   background: rgba(242, 189, 88, 0.05);
+  animation: reveal-down 220ms var(--ease-out);
+  transform-origin: top;
 }
 
 .optional-fields input::placeholder {
@@ -330,9 +387,10 @@ label select:focus {
 
 .panel-result {
   min-height: 58px;
-  margin-top: 12px;
-  padding-top: 11px;
+  margin-top: 14px;
+  padding-top: 13px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
+  animation: result-reveal 220ms var(--ease-out);
 }
 
 .panel-result strong,
@@ -342,13 +400,14 @@ label select:focus {
 
 .panel-result strong {
   color: #f1f7f5;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.3;
+  font-weight: 780;
 }
 
 .panel-result span {
   margin-top: 4px;
-  color: #9eaaa7;
+  color: var(--muted-text);
   font-size: 11px;
   line-height: 1.35;
 }
@@ -357,27 +416,28 @@ label select:focus {
   display: grid;
   grid-template-columns: 1fr;
   gap: 8px;
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
 .share-actions button {
   display: inline-flex;
   min-width: 0;
-  min-height: 46px;
+  min-height: 48px;
   align-items: center;
   justify-content: center;
   gap: 6px;
   border: 1px solid rgba(242, 189, 88, 0.28);
-  border-radius: 10px;
-  background: rgba(242, 189, 88, 0.12);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(242, 189, 88, 0.17), rgba(242, 189, 88, 0.1));
   color: #f7d28d;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 760;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .share-actions button:disabled {
-  cursor: not-allowed;
   opacity: 0.42;
+  transform: none;
 }
 
 .status-message {
@@ -422,16 +482,73 @@ label select:focus {
 .primary-button {
   display: inline-flex;
   width: 100%;
-  min-height: 46px;
+  min-height: 48px;
   align-items: center;
   justify-content: center;
   gap: 8px;
   margin-top: 14px;
   border: 0;
   border-radius: 12px;
-  background: #35b486;
+  background: linear-gradient(180deg, #3ec18f, #2fa77a);
   color: #07110e;
   font-weight: 750;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 10px 24px rgba(53, 180, 134, 0.18);
+}
+
+@keyframes panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes result-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes reveal-down {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scaleY(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+@keyframes soft-slide-in {
+  from {
+    opacity: 0.72;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @media (max-width: 360px) {
