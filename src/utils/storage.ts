@@ -19,6 +19,10 @@ const keys = {
   splitPeople: `${storagePrefix}:splitPeople`,
   splitItemName: `${storagePrefix}:splitItemName`,
   splitDate: `${storagePrefix}:splitDate`,
+  rateSource: `${storagePrefix}:rateSource`,
+  rateDate: `${storagePrefix}:rateDate`,
+  currencyCode: `${storagePrefix}:currencyCode`,
+  rateValue: `${storagePrefix}:rateValue`,
   referenceRateDate: `${storagePrefix}:referenceRateDate`,
   referenceRateCurrency: `${storagePrefix}:referenceRateCurrency`,
   referenceRateValue: `${storagePrefix}:referenceRateValue`,
@@ -47,16 +51,13 @@ export const defaultAppState: FxAppState = {
   splitDate: getTodayInputValue(),
 };
 
-export type CachedReferenceRate = {
-  date: string;
+export type DailyRateSource = "api" | "manual" | "failed";
+
+export type DailyRateRecord = {
+  source: DailyRateSource;
   currencyCode: ForeignCurrencyCode;
-  rate: number;
-  status: "success";
-} | {
   date: string;
-  currencyCode: ForeignCurrencyCode;
-  rate: null;
-  status: "failed";
+  rate: number | null;
 };
 
 export function loadAppState(): FxAppState {
@@ -114,55 +115,53 @@ export function getTodayCacheDate(): string {
   return `${year}-${month}-${day}`;
 }
 
-export function loadCachedReferenceRate(
-  currencyCode: ForeignCurrencyCode,
-  date: string,
-): CachedReferenceRate | null {
-  const cachedDate = readString(keys.referenceRateDate);
-  const cachedCurrency = readForeignCurrency(keys.referenceRateCurrency);
-  const cachedStatus = readString(keys.referenceRateStatus);
+export function loadDailyRateRecord(currencyCode: ForeignCurrencyCode): DailyRateRecord | null {
+  const date = readString(keys.rateDate);
+  const storedCurrency = readForeignCurrency(keys.currencyCode);
+  const source = readDailyRateSource();
 
-  if (cachedDate !== date || cachedCurrency !== currencyCode) {
+  if (!date || storedCurrency !== currencyCode || !source) {
+    return loadLegacyDailyRateRecord(currencyCode);
+  }
+
+  const storedRate = readNumber(keys.rateValue);
+
+  if (source !== "failed" && (!storedRate || storedRate <= 0)) {
     return null;
   }
 
-  if (cachedStatus === "failed") {
-    return {
-      date,
-      currencyCode,
-      rate: null,
-      status: "failed",
-    };
-  }
-
-  const cachedRate = readNumber(keys.referenceRateValue);
-
-  if (cachedStatus === "success" && cachedRate !== null && cachedRate > 0) {
-    return {
-      date,
-      currencyCode,
-      rate: cachedRate,
-      status: "success",
-    };
-  }
-
-  return null;
+  return {
+    source,
+    currencyCode,
+    date,
+    rate: source === "failed" ? null : storedRate,
+  };
 }
 
-export function saveCachedReferenceRate(cache: CachedReferenceRate): void {
-  writeString(keys.referenceRateDate, cache.date);
-  writeString(keys.referenceRateCurrency, cache.currencyCode);
-  writeString(keys.referenceRateStatus, cache.status);
-  writeString(keys.referenceRateValue, cache.rate === null ? "" : String(cache.rate));
+export function saveDailyRateRecord(record: DailyRateRecord): void {
+  writeString(keys.rateSource, record.source);
+  writeString(keys.rateDate, record.date);
+  writeString(keys.currencyCode, record.currencyCode);
+  writeString(keys.rateValue, record.rate === null ? "" : String(record.rate));
 }
 
 export function hasManualRateOverride(currencyCode: ForeignCurrencyCode, date: string): boolean {
-  return readString(keys.manualRateDate) === date && readForeignCurrency(keys.manualRateCurrency) === currencyCode;
+  const record = loadDailyRateRecord(currencyCode);
+
+  return record?.source === "manual" && record.date === date;
 }
 
-export function saveManualRateOverride(currencyCode: ForeignCurrencyCode, date: string): void {
-  writeString(keys.manualRateDate, date);
-  writeString(keys.manualRateCurrency, currencyCode);
+export function saveManualRateOverride(
+  currencyCode: ForeignCurrencyCode,
+  date: string,
+  rate: number,
+): void {
+  saveDailyRateRecord({
+    source: "manual",
+    currencyCode,
+    date,
+    rate,
+  });
 }
 
 function migrateLegacyState(): FxAppState {
@@ -209,6 +208,56 @@ function readForeignCurrency(key: string): ForeignCurrencyCode | null {
     value === "CUSTOM"
     ? value
     : null;
+}
+
+function readDailyRateSource(): DailyRateSource | null {
+  const value = readString(keys.rateSource);
+
+  return value === "api" || value === "manual" || value === "failed" ? value : null;
+}
+
+function loadLegacyDailyRateRecord(currencyCode: ForeignCurrencyCode): DailyRateRecord | null {
+  const manualDate = readString(keys.manualRateDate);
+  const manualCurrency = readForeignCurrency(keys.manualRateCurrency);
+  const referenceDate = readString(keys.referenceRateDate);
+  const referenceCurrency = readForeignCurrency(keys.referenceRateCurrency);
+  const referenceStatus = readString(keys.referenceRateStatus);
+  const referenceRate = readNumber(keys.referenceRateValue);
+
+  if (manualDate && manualCurrency === currencyCode) {
+    return {
+      source: "manual",
+      currencyCode,
+      date: manualDate,
+      rate: null,
+    };
+  }
+
+  if (referenceDate && referenceCurrency === currencyCode && referenceStatus === "failed") {
+    return {
+      source: "failed",
+      currencyCode,
+      date: referenceDate,
+      rate: null,
+    };
+  }
+
+  if (
+    referenceDate &&
+    referenceCurrency === currencyCode &&
+    referenceStatus === "success" &&
+    referenceRate !== null &&
+    referenceRate > 0
+  ) {
+    return {
+      source: "api",
+      currencyCode,
+      date: referenceDate,
+      rate: referenceRate,
+    };
+  }
+
+  return null;
 }
 
 function normalizeLegacyRate(rate: number): number {

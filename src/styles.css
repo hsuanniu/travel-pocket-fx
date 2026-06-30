@@ -515,6 +515,17 @@ label input::placeholder {
   font-size: 12px;
 }
 
+.rate-refresh-button {
+  min-height: 30px;
+  margin: 8px auto 0;
+  padding: 0 6px;
+  border: 0;
+  background: transparent;
+  color: #8fd8ba;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .more-toggle {
   display: inline-flex;
   width: 100%;

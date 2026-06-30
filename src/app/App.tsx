@@ -65,6 +65,7 @@ export function App() {
           onRateChange={calculator.setRateInput}
           onSave={calculator.saveRate}
           onClose={() => setIsRateSheetOpen(false)}
+          onRefreshReferenceRate={calculator.refreshReferenceRate}
           onSwapRateDirection={calculator.swapRateDirection}
           onForeignCurrencyChange={calculator.setForeignCurrencyCode}
           onCustomForeignCurrencyNameChange={calculator.setCustomForeignCurrencyName}

@@ -18,6 +18,7 @@ type RateSheetProps = {
   onRateChange: (value: string) => void;
   onSave: () => boolean;
   onClose: () => void;
+  onRefreshReferenceRate: () => void;
   onSwapRateDirection: () => void;
   onForeignCurrencyChange: (value: ForeignCurrencyCode) => void;
   onCustomForeignCurrencyNameChange: (value: string) => void;
@@ -34,6 +35,7 @@ export function RateSheet({
   onRateChange,
   onSave,
   onClose,
+  onRefreshReferenceRate,
   onSwapRateDirection,
   onForeignCurrencyChange,
   onCustomForeignCurrencyNameChange,
@@ -84,6 +86,9 @@ export function RateSheet({
           </div>
           <p>{baseCode} / {targetCode}</p>
           {rateStatusMessage && <p className="rate-status-message">{rateStatusMessage}</p>}
+          <button className="rate-refresh-button" type="button" onClick={onRefreshReferenceRate}>
+            重新取得今日匯率
+          </button>
         </div>
         <label className="currency-select-label">
           外幣顯示名稱
