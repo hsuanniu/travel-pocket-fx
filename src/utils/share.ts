@@ -9,10 +9,9 @@ export async function shareText(text: string): Promise<ShareResult> {
         text,
       });
       return "shared";
-    } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") {
-        return "cancelled";
-      }
+    } catch {
+      await copyToClipboard(text);
+      return "copied";
     }
   }
 
