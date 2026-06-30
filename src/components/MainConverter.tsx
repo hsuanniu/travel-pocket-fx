@@ -7,13 +7,14 @@ import {
   type ForeignCurrencyDisplay,
 } from "../utils/displayCurrency";
 import { cleanNumericInput } from "../utils/numberInput";
-import { formatCompactMoney, formatDisplayAmount } from "../utils/formatMoney";
+import { formatCompactMoney, formatDisplayAmount, formatRateCompact } from "../utils/formatMoney";
 
 type MainConverterProps = {
   amountInput: string;
   baseCurrency: CurrencyCode;
   targetCurrency: CurrencyCode;
   foreignCurrency: ForeignCurrencyDisplay;
+  displayExchangeRate: number;
   roundedConvertedAmount: number;
   hasResult: boolean;
   onChange: (value: string) => void;
@@ -25,6 +26,7 @@ export function MainConverter({
   baseCurrency,
   targetCurrency,
   foreignCurrency,
+  displayExchangeRate,
   roundedConvertedAmount,
   hasResult,
   onChange,
@@ -35,6 +37,8 @@ export function MainConverter({
   const baseLabel = baseCurrency === "TWD" ? baseCurrency : foreignUnit;
   const targetLabel = targetCurrency === "TWD" ? targetCurrency : foreignUnit;
   const baseDisplayLabel = baseCurrency === "TWD" ? "台幣 TWD" : `${foreignCurrency.name} ${foreignUnit}`;
+  const rateBaseName = baseCurrency === "TWD" ? "台幣" : foreignCurrency.name;
+  const rateTargetName = targetCurrency === "TWD" ? "台幣" : foreignCurrency.name;
   const targetSymbol = targetCurrency === "TWD" ? target.symbol : foreignCurrency.symbol;
   const resultLabel = targetCurrency === "TWD" ? "約新台幣" : `約${foreignCurrency.name}`;
   const amountSizeClass = getAmountSizeClass(amountInput);
@@ -85,6 +89,11 @@ export function MainConverter({
             {targetSymbol ? `${targetSymbol} ` : ""}
             {formatCompactMoney(roundedConvertedAmount)}
           </strong>
+        </div>
+      )}
+      {displayExchangeRate > 0 && (
+        <div className="converter-rate-note">
+          1 {rateBaseName} = {formatRateCompact(displayExchangeRate)} {rateTargetName}
         </div>
       )}
     </section>

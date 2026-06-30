@@ -26,6 +26,7 @@ export function App() {
           baseCurrency={calculator.activeExchangeRate.base}
           targetCurrency={calculator.activeExchangeRate.target}
           foreignCurrency={calculator.foreignCurrency}
+          displayExchangeRate={calculator.activeExchangeRate.rate}
           roundedConvertedAmount={calculator.roundedConvertedAmount}
           hasResult={calculator.hasConversionResult}
           onChange={calculator.setAmountInput}

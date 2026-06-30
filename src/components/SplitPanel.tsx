@@ -41,6 +41,7 @@ export function SplitPanel({
   onDateChange,
 }: SplitPanelProps) {
   const foreignUnit = getForeignCurrencyUnit(foreignCurrency);
+  const [isOpen, setIsOpen] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const totalJpy = toNumber(total);
@@ -100,72 +101,84 @@ export function SplitPanel({
   }
 
   return (
-    <section className="tool-panel accent-gold">
-      <div className="panel-title">
-        <UsersRound size={18} />
-        <h2>費用分攤</h2>
-      </div>
-      <label>
-        總金額 {foreignUnit}
-        <input
-          inputMode="decimal"
-          value={total}
-          placeholder="例如：40000"
-          onChange={(event) => onTotalChange(cleanNumericInput(event.target.value))}
-        />
-      </label>
-      <label>
-        人數
-        <input
-          inputMode="numeric"
-          value={people}
-          placeholder="例如：4"
-          onChange={(event) => onPeopleChange(cleanNumericInput(event.target.value))}
-        />
-      </label>
+    <section className={`tool-panel accent-gold${isOpen ? "" : " is-collapsed"}`}>
       <button
-        className="more-toggle"
+        className="panel-toggle"
         type="button"
-        onClick={() => setIsMoreOpen((current) => !current)}
-        aria-expanded={isMoreOpen}
+        onClick={() => setIsOpen((current) => !current)}
+        aria-expanded={isOpen}
       >
-        更多選項（選填）
-        {isMoreOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        <span className="panel-title">
+          <UsersRound size={18} />
+          <h2>費用分攤</h2>
+        </span>
+        {isOpen ? <ChevronUp size={17} /> : <ChevronDown size={17} />}
       </button>
-      {isMoreOpen && (
-        <div className="optional-fields">
+      {isOpen && (
+        <div className="panel-body">
           <label>
-            消費項目
+            總金額 {foreignUnit}
             <input
-              value={itemName}
-              onChange={(event) => onItemNameChange(event.target.value)}
-              placeholder="晚餐、超市、咖啡、計程車"
+              inputMode="decimal"
+              value={total}
+              placeholder="例如：40000"
+              onChange={(event) => onTotalChange(cleanNumericInput(event.target.value))}
             />
           </label>
           <label>
-            日期
+            人數
             <input
-              value={date}
               inputMode="numeric"
-              onChange={(event) => onDateChange(event.target.value)}
-              placeholder="YYYY/MM/DD"
+              value={people}
+              placeholder="例如：4"
+              onChange={(event) => onPeopleChange(cleanNumericInput(event.target.value))}
             />
           </label>
+          <button
+            className="more-toggle"
+            type="button"
+            onClick={() => setIsMoreOpen((current) => !current)}
+            aria-expanded={isMoreOpen}
+          >
+            更多選項（選填）
+            {isMoreOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
+          {isMoreOpen && (
+            <div className="optional-fields">
+              <label>
+                消費項目
+                <input
+                  value={itemName}
+                  onChange={(event) => onItemNameChange(event.target.value)}
+                  placeholder="晚餐、超市、咖啡、計程車"
+                />
+              </label>
+              <label>
+                日期
+                <input
+                  value={date}
+                  inputMode="numeric"
+                  onChange={(event) => onDateChange(event.target.value)}
+                  placeholder="YYYY/MM/DD"
+                />
+              </label>
+            </div>
+          )}
+          {hasShareResult && (
+            <div className="panel-result">
+              <strong>每人約 NT$ {formatNumber(perPersonTwd)}</strong>
+              <span>總計約 NT$ {formatNumber(totalTwd)}</span>
+            </div>
+          )}
+          <div className="share-actions" aria-label="費用分攤分享">
+            <button type="button" onClick={handleShare} disabled={!hasShareResult}>
+              <Send size={16} />
+              分享結果
+            </button>
+          </div>
+          {statusMessage && <p className="status-message">{statusMessage}</p>}
         </div>
       )}
-      {hasShareResult && (
-        <div className="panel-result">
-          <strong>每人約 NT$ {formatNumber(perPersonTwd)}</strong>
-          <span>總計約 NT$ {formatNumber(totalTwd)}</span>
-        </div>
-      )}
-      <div className="share-actions" aria-label="費用分攤分享">
-        <button type="button" onClick={handleShare} disabled={!hasShareResult}>
-          <Send size={16} />
-          分享結果
-        </button>
-      </div>
-      {statusMessage && <p className="status-message">{statusMessage}</p>}
     </section>
   );
 }
