@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { X } from "lucide-react";
 import type { CurrencyCode } from "../features/currency/currencyTypes";
 import { currencies } from "../features/currency/currencies";
@@ -6,7 +7,7 @@ import {
   type ForeignCurrencyDisplay,
 } from "../utils/displayCurrency";
 import { cleanNumericInput } from "../utils/numberInput";
-import { formatCompactMoney } from "../utils/formatMoney";
+import { formatCompactMoney, formatDisplayAmount } from "../utils/formatMoney";
 
 type MainConverterProps = {
   amountInput: string;
@@ -36,18 +37,35 @@ export function MainConverter({
   const targetSymbol = targetCurrency === "TWD" ? target.symbol : foreignCurrency.symbol;
   const resultLabel = targetCurrency === "TWD" ? "約新台幣" : `約${foreignCurrency.name}`;
   const amountSizeClass = getAmountSizeClass(amountInput);
+  const amountInputRef = useRef<HTMLInputElement>(null);
+  const displayAmount = amountInput ? formatDisplayAmount(amountInput) : "請輸入金額";
 
   return (
     <section className="converter-panel" aria-label={`${baseLabel} 換算 ${targetLabel}`}>
       <div className="amount-row">
-        <div className="amount-input-shell">
+        <div
+          className="amount-display-shell"
+          onClick={() => amountInputRef.current?.focus()}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              amountInputRef.current?.focus();
+            }
+          }}
+          role="presentation"
+        >
+          <span
+            className={`amount-display ${amountSizeClass}${amountInput ? "" : " amount-display-placeholder"}`}
+            aria-hidden="true"
+          >
+            {displayAmount}
+          </span>
           <input
-            className={`amount-input ${amountSizeClass}`}
+            ref={amountInputRef}
+            className="amount-native-input"
             inputMode="decimal"
             value={amountInput}
             onChange={(event) => onChange(cleanNumericInput(event.target.value))}
             aria-label={`${baseLabel} 金額`}
-            placeholder="請輸入金額"
           />
         </div>
         <div className="amount-actions">
