@@ -4,6 +4,18 @@ export function formatNumber(value: number): string {
   }).format(value);
 }
 
+export function formatCompactMoney(value: number): string {
+  if (Math.abs(value) >= 100_000_000) {
+    const yiValue = value / 100_000_000;
+
+    return `${new Intl.NumberFormat("zh-TW", {
+      maximumFractionDigits: yiValue >= 10 ? 1 : 2,
+    }).format(yiValue)}億`;
+  }
+
+  return formatNumber(value);
+}
+
 export function formatRate(value: number): string {
   return value.toFixed(5);
 }

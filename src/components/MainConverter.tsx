@@ -6,7 +6,7 @@ import {
   type ForeignCurrencyDisplay,
 } from "../utils/displayCurrency";
 import { cleanNumericInput } from "../utils/numberInput";
-import { formatNumber } from "../utils/formatMoney";
+import { formatCompactMoney } from "../utils/formatMoney";
 
 type MainConverterProps = {
   amountInput: string;
@@ -40,14 +40,16 @@ export function MainConverter({
   return (
     <section className="converter-panel" aria-label={`${baseLabel} 換算 ${targetLabel}`}>
       <div className="amount-row">
-        <input
-          className={amountSizeClass}
-          inputMode="decimal"
-          value={amountInput}
-          onChange={(event) => onChange(cleanNumericInput(event.target.value))}
-          aria-label={`${baseLabel} 金額`}
-          placeholder="請輸入金額"
-        />
+        <div className="amount-input-shell">
+          <input
+            className={amountSizeClass}
+            inputMode="decimal"
+            value={amountInput}
+            onChange={(event) => onChange(cleanNumericInput(event.target.value))}
+            aria-label={`${baseLabel} 金額`}
+            placeholder="請輸入金額"
+          />
+        </div>
         <div className="amount-actions">
           <span>{baseLabel}</span>
           {amountInput && (
@@ -62,7 +64,7 @@ export function MainConverter({
           <span>{resultLabel}</span>
           <strong>
             {targetSymbol ? `${targetSymbol} ` : ""}
-            {formatNumber(roundedConvertedAmount)}
+            {formatCompactMoney(roundedConvertedAmount)}
           </strong>
         </div>
       )}
@@ -72,6 +74,10 @@ export function MainConverter({
 
 function getAmountSizeClass(value: string): string {
   const digitCount = value.replace(/\D/g, "").length;
+
+  if (digitCount >= 10) {
+    return "amount-size-small";
+  }
 
   if (digitCount >= 8) {
     return "amount-size-compact";
