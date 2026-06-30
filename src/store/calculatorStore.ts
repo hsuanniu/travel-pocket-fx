@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ExchangeRate } from "../features/currency/currencyTypes";
 import { cowRoundAmount } from "../features/rounding/cowRounding";
 import {
@@ -14,13 +14,23 @@ import {
   type FxAppState,
 } from "../utils/fx";
 import { toNumber } from "../utils/numberInput";
-import { loadAppState, saveAppState } from "../utils/storage";
+import { canFetchReferenceRate, fetchTwdReferenceRate } from "../utils/rateApi";
+import {
+  getTodayCacheDate,
+  hasManualRateOverride,
+  loadAppState,
+  loadCachedReferenceRate,
+  saveAppState,
+  saveCachedReferenceRate,
+  saveManualRateOverride,
+} from "../utils/storage";
 
 export type CalculatorState = {
   amountInput: string;
   rateInput: string;
   exchangeRate: number;
   activeExchangeRate: ExchangeRate;
+  rateStatusMessage: string;
   foreignCurrency: ForeignCurrencyDisplay;
   foreignCurrencyCode: ForeignCurrencyCode;
   customForeignCurrencyName: string;
@@ -50,6 +60,9 @@ export function useCalculatorStore(): CalculatorState {
   const [rateInput, setRateInput] = useState(() =>
     getDisplayRateInput(appState),
   );
+  const [rateStatusMessage, setRateStatusMessage] = useState("");
+  const requestedReferenceKeyRef = useRef("");
+  const currentForeignCurrencyRef = useRef(appState.foreignCurrencyCode);
 
   const numericAmount = toNumber(appState.inputAmount);
   const activeExchangeRate = useMemo(() => getActiveExchangeRate(appState), [appState]);
@@ -74,9 +87,94 @@ export function useCalculatorStore(): CalculatorState {
   const roundedConvertedAmount = useMemo(() => cowRoundAmount(convertedAmount), [convertedAmount]);
   const hasConversionResult = numericAmount > 0 && appState.exchangeRate > 0;
 
+  function applyReferenceRate(rate: number, currencyCode: ForeignCurrencyCode): void {
+    setAppState((current) => {
+      if (current.foreignCurrencyCode !== currencyCode) {
+        return current;
+      }
+
+      const nextState = {
+        ...current,
+        exchangeRate: rate,
+      };
+
+      setRateInput(getDisplayRateInput(nextState));
+      return nextState;
+    });
+  }
+
   useEffect(() => {
     saveAppState(appState);
   }, [appState]);
+
+  useEffect(() => {
+    currentForeignCurrencyRef.current = appState.foreignCurrencyCode;
+  }, [appState.foreignCurrencyCode]);
+
+  useEffect(() => {
+    const currencyCode = appState.foreignCurrencyCode;
+    const today = getTodayCacheDate();
+    const requestKey = `${today}:${currencyCode}`;
+
+    if (!canFetchReferenceRate(currencyCode)) {
+      setRateStatusMessage("");
+      return;
+    }
+
+    if (hasManualRateOverride(currencyCode, today)) {
+      setRateStatusMessage("");
+      return;
+    }
+
+    const cachedRate = loadCachedReferenceRate(currencyCode, today);
+
+    if (cachedRate?.status === "success") {
+      applyReferenceRate(cachedRate.rate, currencyCode);
+      setRateStatusMessage("每日參考匯率，可自行修改");
+      return;
+    }
+
+    if (cachedRate?.status === "failed") {
+      setRateStatusMessage("無法取得匯率，請手動輸入");
+      return;
+    }
+
+    if (requestedReferenceKeyRef.current === requestKey) {
+      return;
+    }
+
+    requestedReferenceKeyRef.current = requestKey;
+
+    void fetchTwdReferenceRate(currencyCode).then((referenceRate) => {
+      if (hasManualRateOverride(currencyCode, today)) {
+        return;
+      }
+
+      if (referenceRate && referenceRate > 0) {
+        saveCachedReferenceRate({
+          date: today,
+          currencyCode,
+          rate: referenceRate,
+          status: "success",
+        });
+        applyReferenceRate(referenceRate, currencyCode);
+        if (currentForeignCurrencyRef.current === currencyCode) {
+          setRateStatusMessage("每日參考匯率，可自行修改");
+        }
+        return;
+      }
+
+      saveCachedReferenceRate({
+        date: today,
+        currencyCode,
+        rate: null,
+        status: "failed",
+      });
+      if (currentForeignCurrencyRef.current === currencyCode) {
+        setRateStatusMessage("無法取得匯率，請手動輸入");
+      }
+    });
+  }, [appState.foreignCurrencyCode]);
 
   function appendAmount(value: string): void {
     setAppState((current) => ({
@@ -111,6 +209,8 @@ export function useCalculatorStore(): CalculatorState {
       ...current,
       exchangeRate: current.fromCurrency === "TWD" ? nextRate : 1 / nextRate,
     }));
+    saveManualRateOverride(appState.foreignCurrencyCode, getTodayCacheDate());
+    setRateStatusMessage("");
     return true;
   }
 
@@ -127,6 +227,7 @@ export function useCalculatorStore(): CalculatorState {
     rateInput,
     exchangeRate: appState.exchangeRate,
     activeExchangeRate,
+    rateStatusMessage,
     foreignCurrency,
     foreignCurrencyCode: appState.foreignCurrencyCode,
     customForeignCurrencyName: appState.customForeignCurrencyName,
@@ -147,11 +248,15 @@ export function useCalculatorStore(): CalculatorState {
     setRateInput,
     saveRate,
     swapRateDirection,
-    setForeignCurrencyCode: (value) =>
+    setForeignCurrencyCode: (value) => {
+      setRateStatusMessage("");
+      setRateInput("");
       setAppState((current) => ({
         ...current,
         foreignCurrencyCode: value,
-      })),
+        exchangeRate: current.foreignCurrencyCode === value ? current.exchangeRate : 0,
+      }));
+    },
     setCustomForeignCurrencyName: (value) =>
       setAppState((current) => ({
         ...current,

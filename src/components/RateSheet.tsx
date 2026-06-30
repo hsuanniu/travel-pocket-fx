@@ -14,6 +14,7 @@ type RateSheetProps = {
   foreignCurrencyCode: ForeignCurrencyCode;
   customForeignCurrencyName: string;
   activeExchangeRate: ExchangeRate;
+  rateStatusMessage: string;
   onRateChange: (value: string) => void;
   onSave: () => boolean;
   onClose: () => void;
@@ -29,6 +30,7 @@ export function RateSheet({
   foreignCurrencyCode,
   customForeignCurrencyName,
   activeExchangeRate,
+  rateStatusMessage,
   onRateChange,
   onSave,
   onClose,
@@ -81,6 +83,7 @@ export function RateSheet({
             <span className="rate-side">{targetName}</span>
           </div>
           <p>{baseCode} / {targetCode}</p>
+          {rateStatusMessage && <p className="rate-status-message">{rateStatusMessage}</p>}
         </div>
         <label className="currency-select-label">
           外幣顯示名稱

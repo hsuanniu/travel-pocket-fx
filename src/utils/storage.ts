@@ -19,6 +19,12 @@ const keys = {
   splitPeople: `${storagePrefix}:splitPeople`,
   splitItemName: `${storagePrefix}:splitItemName`,
   splitDate: `${storagePrefix}:splitDate`,
+  referenceRateDate: `${storagePrefix}:referenceRateDate`,
+  referenceRateCurrency: `${storagePrefix}:referenceRateCurrency`,
+  referenceRateValue: `${storagePrefix}:referenceRateValue`,
+  referenceRateStatus: `${storagePrefix}:referenceRateStatus`,
+  manualRateDate: `${storagePrefix}:manualRateDate`,
+  manualRateCurrency: `${storagePrefix}:manualRateCurrency`,
 } as const;
 
 const legacyKeys = {
@@ -39,6 +45,18 @@ export const defaultAppState: FxAppState = {
   splitPeople: "",
   splitItemName: "",
   splitDate: getTodayInputValue(),
+};
+
+export type CachedReferenceRate = {
+  date: string;
+  currencyCode: ForeignCurrencyCode;
+  rate: number;
+  status: "success";
+} | {
+  date: string;
+  currencyCode: ForeignCurrencyCode;
+  rate: null;
+  status: "failed";
 };
 
 export function loadAppState(): FxAppState {
@@ -85,6 +103,66 @@ export function saveAppState(state: FxAppState): void {
   writeString(keys.splitPeople, state.splitPeople);
   writeString(keys.splitItemName, state.splitItemName);
   writeString(keys.splitDate, state.splitDate);
+}
+
+export function getTodayCacheDate(): string {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+export function loadCachedReferenceRate(
+  currencyCode: ForeignCurrencyCode,
+  date: string,
+): CachedReferenceRate | null {
+  const cachedDate = readString(keys.referenceRateDate);
+  const cachedCurrency = readForeignCurrency(keys.referenceRateCurrency);
+  const cachedStatus = readString(keys.referenceRateStatus);
+
+  if (cachedDate !== date || cachedCurrency !== currencyCode) {
+    return null;
+  }
+
+  if (cachedStatus === "failed") {
+    return {
+      date,
+      currencyCode,
+      rate: null,
+      status: "failed",
+    };
+  }
+
+  const cachedRate = readNumber(keys.referenceRateValue);
+
+  if (cachedStatus === "success" && cachedRate !== null && cachedRate > 0) {
+    return {
+      date,
+      currencyCode,
+      rate: cachedRate,
+      status: "success",
+    };
+  }
+
+  return null;
+}
+
+export function saveCachedReferenceRate(cache: CachedReferenceRate): void {
+  writeString(keys.referenceRateDate, cache.date);
+  writeString(keys.referenceRateCurrency, cache.currencyCode);
+  writeString(keys.referenceRateStatus, cache.status);
+  writeString(keys.referenceRateValue, cache.rate === null ? "" : String(cache.rate));
+}
+
+export function hasManualRateOverride(currencyCode: ForeignCurrencyCode, date: string): boolean {
+  return readString(keys.manualRateDate) === date && readForeignCurrency(keys.manualRateCurrency) === currencyCode;
+}
+
+export function saveManualRateOverride(currencyCode: ForeignCurrencyCode, date: string): void {
+  writeString(keys.manualRateDate, date);
+  writeString(keys.manualRateCurrency, currencyCode);
 }
 
 function migrateLegacyState(): FxAppState {

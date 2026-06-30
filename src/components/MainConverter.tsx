@@ -15,6 +15,7 @@ type MainConverterProps = {
   targetCurrency: CurrencyCode;
   foreignCurrency: ForeignCurrencyDisplay;
   displayExchangeRate: number;
+  rateStatusMessage: string;
   roundedConvertedAmount: number;
   hasResult: boolean;
   onChange: (value: string) => void;
@@ -27,6 +28,7 @@ export function MainConverter({
   targetCurrency,
   foreignCurrency,
   displayExchangeRate,
+  rateStatusMessage,
   roundedConvertedAmount,
   hasResult,
   onChange,
@@ -96,6 +98,7 @@ export function MainConverter({
           1 {rateBaseName} = {formatRateCompact(displayExchangeRate)} {rateTargetName}
         </div>
       )}
+      {rateStatusMessage && <div className="converter-rate-status">{rateStatusMessage}</div>}
     </section>
   );
 }

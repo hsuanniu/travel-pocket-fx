@@ -27,6 +27,7 @@ export function App() {
           targetCurrency={calculator.activeExchangeRate.target}
           foreignCurrency={calculator.foreignCurrency}
           displayExchangeRate={calculator.activeExchangeRate.rate}
+          rateStatusMessage={calculator.rateStatusMessage}
           roundedConvertedAmount={calculator.roundedConvertedAmount}
           hasResult={calculator.hasConversionResult}
           onChange={calculator.setAmountInput}
@@ -60,6 +61,7 @@ export function App() {
           foreignCurrencyCode={calculator.foreignCurrencyCode}
           customForeignCurrencyName={calculator.customForeignCurrencyName}
           activeExchangeRate={calculator.activeExchangeRate}
+          rateStatusMessage={calculator.rateStatusMessage}
           onRateChange={calculator.setRateInput}
           onSave={calculator.saveRate}
           onClose={() => setIsRateSheetOpen(false)}
