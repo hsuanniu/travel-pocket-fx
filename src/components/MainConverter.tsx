@@ -34,6 +34,7 @@ export function MainConverter({
   const foreignUnit = getForeignCurrencyUnit(foreignCurrency);
   const baseLabel = baseCurrency === "TWD" ? baseCurrency : foreignUnit;
   const targetLabel = targetCurrency === "TWD" ? targetCurrency : foreignUnit;
+  const baseDisplayLabel = baseCurrency === "TWD" ? "台幣 TWD" : `${foreignCurrency.name} ${foreignUnit}`;
   const targetSymbol = targetCurrency === "TWD" ? target.symbol : foreignCurrency.symbol;
   const resultLabel = targetCurrency === "TWD" ? "約新台幣" : `約${foreignCurrency.name}`;
   const amountSizeClass = getAmountSizeClass(amountInput);
@@ -43,39 +44,39 @@ export function MainConverter({
   return (
     <section className="converter-panel" aria-label={`${baseLabel} 換算 ${targetLabel}`}>
       <div className="amount-row">
-        <div
-          className="amount-display-shell"
-          onClick={() => amountInputRef.current?.focus()}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") {
-              amountInputRef.current?.focus();
-            }
-          }}
-          role="presentation"
-        >
-          <span
-            className={`amount-display ${amountSizeClass}${amountInput ? "" : " amount-display-placeholder"}`}
-            aria-hidden="true"
+        <div className="amount-top-row">
+          <div
+            className="amount-display-shell"
+            onClick={() => amountInputRef.current?.focus()}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                amountInputRef.current?.focus();
+              }
+            }}
+            role="presentation"
           >
-            {displayAmount}
-          </span>
-          <input
-            ref={amountInputRef}
-            className="amount-native-input"
-            inputMode="decimal"
-            value={amountInput}
-            onChange={(event) => onChange(cleanNumericInput(event.target.value))}
-            aria-label={`${baseLabel} 金額`}
-          />
-        </div>
-        <div className="amount-actions">
-          <span>{baseLabel}</span>
+            <span
+              className={`amount-display ${amountSizeClass}${amountInput ? "" : " amount-display-placeholder"}`}
+              aria-hidden="true"
+            >
+              {displayAmount}
+            </span>
+            <input
+              ref={amountInputRef}
+              className="amount-native-input"
+              inputMode="decimal"
+              value={amountInput}
+              onChange={(event) => onChange(cleanNumericInput(event.target.value))}
+              aria-label={`${baseLabel} 金額`}
+            />
+          </div>
           {amountInput && (
             <button className="clear-button" type="button" onClick={onClear} aria-label="清除金額">
               <X size={18} />
             </button>
           )}
         </div>
+        <div className="amount-currency-label">{baseDisplayLabel}</div>
       </div>
       {hasResult && (
         <div className="result-row">
@@ -97,8 +98,12 @@ function getAmountSizeClass(value: string): string {
     return "amount-size-small";
   }
 
-  if (digitCount >= 7) {
+  if (digitCount >= 8) {
     return "amount-size-compact";
+  }
+
+  if (digitCount >= 7) {
+    return "amount-size-medium";
   }
 
   return "amount-size-large";

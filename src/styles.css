@@ -171,8 +171,15 @@ button:disabled {
 
 .amount-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 132px;
-  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-width: 0;
+}
+
+.amount-top-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 38px;
+  align-items: start;
   gap: 8px;
   width: 100%;
   min-width: 0;
@@ -203,8 +210,12 @@ button:disabled {
   transition: color 180ms var(--ease-out);
 }
 
+.amount-display.amount-size-medium {
+  font-size: 46px;
+}
+
 .amount-display.amount-size-compact {
-  font-size: 30px;
+  font-size: 34px;
 }
 
 .amount-display.amount-size-small {
@@ -233,19 +244,11 @@ button:disabled {
   opacity: 0;
 }
 
-.amount-actions {
-  display: flex;
-  width: 132px;
-  min-width: 132px;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.amount-actions span {
+.amount-currency-label {
   color: #98a5a2;
   font-size: 16px;
   font-weight: 720;
+  line-height: 1.2;
   white-space: nowrap;
 }
 
@@ -663,17 +666,8 @@ label input::placeholder {
     padding-inline: 10px;
   }
 
-  .amount-row {
-    grid-template-columns: minmax(0, 1fr) 120px;
-  }
-
   .amount-display.amount-size-large {
     font-size: 46px;
-  }
-
-  .amount-actions {
-    width: 120px;
-    min-width: 120px;
   }
 
   .tool-grid {
