@@ -42,7 +42,7 @@ export function MainConverter({
       <div className="amount-row">
         <div className="amount-input-shell">
           <input
-            className={amountSizeClass}
+            className={`amount-input ${amountSizeClass}`}
             inputMode="decimal"
             value={amountInput}
             onChange={(event) => onChange(cleanNumericInput(event.target.value))}
@@ -79,12 +79,8 @@ function getAmountSizeClass(value: string): string {
     return "amount-size-small";
   }
 
-  if (digitCount >= 8) {
+  if (digitCount >= 7) {
     return "amount-size-compact";
-  }
-
-  if (digitCount >= 6) {
-    return "amount-size-medium";
   }
 
   return "amount-size-large";
