@@ -6,6 +6,8 @@ import {
   type ForeignCurrencyCode,
   type ForeignCurrencyDisplay,
 } from "../utils/displayCurrency";
+import { AppButton } from "./ui/AppButton";
+import { AppInput } from "./ui/AppInput";
 
 type RateSheetProps = {
   isOpen: boolean;
@@ -74,7 +76,7 @@ export function RateSheet({
             >
               <ArrowLeftRight size={15} />
             </button>
-            <input
+            <AppInput
               inputMode="decimal"
               value={rateInput}
               onChange={(event) => onRateChange(event.target.value)}
@@ -106,15 +108,15 @@ export function RateSheet({
         {foreignCurrencyCode === "CUSTOM" && (
           <label>
             自訂外幣名稱
-            <input
+            <AppInput
               value={customForeignCurrencyName}
               onChange={(event) => onCustomForeignCurrencyNameChange(event.target.value)}
               placeholder="例如：新加坡幣"
             />
           </label>
         )}
-        <button
-          className="primary-button"
+        <AppButton
+          variant="primary"
           type="button"
           onClick={() => {
             if (onSave()) {
@@ -124,7 +126,7 @@ export function RateSheet({
         >
           <Check size={18} />
           儲存
-        </button>
+        </AppButton>
       </section>
     </div>
   );

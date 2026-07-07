@@ -8,6 +8,8 @@ import {
 } from "../utils/displayCurrency";
 import { cleanNumericInput } from "../utils/numberInput";
 import { formatCompactMoney, formatDisplayAmount, formatRateCompact } from "../utils/formatMoney";
+import { Badge } from "./ui/Badge";
+import { GlassCard } from "./ui/GlassCard";
 
 type MainConverterProps = {
   amountInput: string;
@@ -48,7 +50,7 @@ export function MainConverter({
   const displayAmount = amountInput ? formatDisplayAmount(amountInput) : "請輸入金額";
 
   return (
-    <section className="converter-panel" aria-label={`${baseLabel} 換算 ${targetLabel}`}>
+    <GlassCard className="converter-panel" aria-label={`${baseLabel} 換算 ${targetLabel}`}>
       <div className="amount-row">
         <div className="amount-top-row">
           <div
@@ -98,8 +100,12 @@ export function MainConverter({
           1 {rateBaseName} = {formatRateCompact(displayExchangeRate)} {rateTargetName}
         </div>
       )}
-      {rateStatusMessage && <div className="converter-rate-status">{rateStatusMessage}</div>}
-    </section>
+      {rateStatusMessage && (
+        <div className="converter-rate-status">
+          <Badge>{rateStatusMessage}</Badge>
+        </div>
+      )}
+    </GlassCard>
   );
 }
 

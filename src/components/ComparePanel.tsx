@@ -9,6 +9,8 @@ import {
 import { convertJpyToTwd } from "../utils/fx";
 import { formatNumber, formatPercent } from "../utils/formatMoney";
 import { cleanNumericInput, toNumber } from "../utils/numberInput";
+import { AppInput } from "./ui/AppInput";
+import { SectionTitle } from "./ui/SectionTitle";
 
 type ComparePanelProps = {
   exchangeRate: number;
@@ -42,17 +44,14 @@ export function ComparePanel({ exchangeRate, foreignCurrency }: ComparePanelProp
         onClick={() => setIsOpen((current) => !current)}
         aria-expanded={isOpen}
       >
-        <span className="panel-title">
-          <ShoppingBag size={18} />
-          <h2>比價</h2>
-        </span>
+        <SectionTitle icon={<ShoppingBag size={18} />} title="比價" />
         {isOpen ? <ChevronUp size={17} /> : <ChevronDown size={17} />}
       </button>
       {isOpen && (
         <div className="panel-body">
           <label>
             {foreignCurrency.name}價格 {foreignUnit}
-            <input
+            <AppInput
               inputMode="decimal"
               value={foreignPrice}
               placeholder={`例如：1000`}
@@ -61,7 +60,7 @@ export function ComparePanel({ exchangeRate, foreignCurrency }: ComparePanelProp
           </label>
           <label>
             台灣價格 TWD
-            <input
+            <AppInput
               inputMode="decimal"
               value={taiwanPrice}
               placeholder="例如：200"

@@ -12,6 +12,9 @@ import { formatNumber } from "../utils/formatMoney";
 import { cleanNumericInput, toNumber } from "../utils/numberInput";
 import { shareText } from "../utils/share";
 import { createSplitShareText } from "../utils/shareText";
+import { AppButton } from "./ui/AppButton";
+import { AppInput } from "./ui/AppInput";
+import { SectionTitle } from "./ui/SectionTitle";
 
 type SplitPanelProps = {
   exchangeRate: number;
@@ -108,17 +111,14 @@ export function SplitPanel({
         onClick={() => setIsOpen((current) => !current)}
         aria-expanded={isOpen}
       >
-        <span className="panel-title">
-          <UsersRound size={18} />
-          <h2>費用分攤</h2>
-        </span>
+        <SectionTitle icon={<UsersRound size={18} />} title="費用分攤" />
         {isOpen ? <ChevronUp size={17} /> : <ChevronDown size={17} />}
       </button>
       {isOpen && (
         <div className="panel-body">
           <label>
             總金額 {foreignUnit}
-            <input
+            <AppInput
               inputMode="decimal"
               value={total}
               placeholder="例如：40000"
@@ -127,7 +127,7 @@ export function SplitPanel({
           </label>
           <label>
             人數
-            <input
+            <AppInput
               inputMode="numeric"
               value={people}
               placeholder="例如：4"
@@ -147,7 +147,7 @@ export function SplitPanel({
             <div className="optional-fields">
               <label>
                 消費項目
-                <input
+                <AppInput
                   value={itemName}
                   onChange={(event) => onItemNameChange(event.target.value)}
                   placeholder="晚餐、超市、咖啡、計程車"
@@ -155,7 +155,7 @@ export function SplitPanel({
               </label>
               <label>
                 日期
-                <input
+                <AppInput
                   value={date}
                   inputMode="numeric"
                   onChange={(event) => onDateChange(event.target.value)}
@@ -171,10 +171,10 @@ export function SplitPanel({
             </div>
           )}
           <div className="share-actions" aria-label="費用分攤分享">
-            <button type="button" onClick={handleShare} disabled={!hasShareResult}>
+            <AppButton variant="primary" type="button" onClick={handleShare} disabled={!hasShareResult}>
               <Send size={16} />
               分享結果
-            </button>
+            </AppButton>
           </div>
           {statusMessage && <p className="status-message">{statusMessage}</p>}
         </div>
