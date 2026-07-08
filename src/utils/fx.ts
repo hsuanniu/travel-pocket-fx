@@ -13,6 +13,7 @@ export type FxAppState = {
   customForeignCurrencyName: string;
   splitTotalAmount: string;
   splitPeople: string;
+  splitPayerName: string;
   splitItemName: string;
   splitDate: string;
 };

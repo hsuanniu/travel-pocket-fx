@@ -17,6 +17,7 @@ const keys = {
   customForeignCurrencyName: `${storagePrefix}:customForeignCurrencyName`,
   splitTotalAmount: `${storagePrefix}:splitTotalAmount`,
   splitPeople: `${storagePrefix}:splitPeople`,
+  splitPayerName: `${storagePrefix}:splitPayerName`,
   splitItemName: `${storagePrefix}:splitItemName`,
   splitDate: `${storagePrefix}:splitDate`,
   rateSource: `${storagePrefix}:rateSource`,
@@ -47,6 +48,7 @@ export const defaultAppState: FxAppState = {
   customForeignCurrencyName: "",
   splitTotalAmount: "",
   splitPeople: "",
+  splitPayerName: "",
   splitItemName: "",
   splitDate: getTodayInputValue(),
 };
@@ -83,6 +85,7 @@ export function loadAppState(): FxAppState {
         readString(keys.customForeignCurrencyName) ?? defaultAppState.customForeignCurrencyName,
       splitTotalAmount: readString(keys.splitTotalAmount) ?? defaultAppState.splitTotalAmount,
       splitPeople: readString(keys.splitPeople) ?? defaultAppState.splitPeople,
+      splitPayerName: readString(keys.splitPayerName) ?? defaultAppState.splitPayerName,
       splitItemName: readString(keys.splitItemName) ?? defaultAppState.splitItemName,
       splitDate: readString(keys.splitDate) ?? defaultAppState.splitDate,
     };
@@ -102,6 +105,7 @@ export function saveAppState(state: FxAppState): void {
   writeString(keys.customForeignCurrencyName, state.customForeignCurrencyName);
   writeString(keys.splitTotalAmount, state.splitTotalAmount);
   writeString(keys.splitPeople, state.splitPeople);
+  writeString(keys.splitPayerName, state.splitPayerName);
   writeString(keys.splitItemName, state.splitItemName);
   writeString(keys.splitDate, state.splitDate);
 }
@@ -186,6 +190,7 @@ function migrateLegacyState(): FxAppState {
     customForeignCurrencyName: defaultAppState.customForeignCurrencyName,
     splitTotalAmount: defaultAppState.splitTotalAmount,
     splitPeople: defaultAppState.splitPeople,
+    splitPayerName: defaultAppState.splitPayerName,
     splitItemName: defaultAppState.splitItemName,
     splitDate: defaultAppState.splitDate,
   };

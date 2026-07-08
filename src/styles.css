@@ -114,14 +114,10 @@ button:disabled {
   height: 72px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(8, 211, 143, 0.18);
+  border: 0;
   border-radius: 22px;
-  background:
-    radial-gradient(circle at 40% 25%, rgba(33, 240, 177, 0.32), transparent 3.3rem),
-    linear-gradient(180deg, #142032, #070b14);
-  box-shadow:
-    inset 0 0 22px rgba(8, 211, 143, 0.08),
-    0 16px 34px rgba(0, 0, 0, 0.34);
+  background: transparent;
+  box-shadow: none;
   overflow: hidden;
 }
 
@@ -740,6 +736,20 @@ label input::placeholder {
   color: var(--muted-text);
   font-size: 11px;
   line-height: 1.35;
+}
+
+.payer-summary {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.payer-summary span {
+  margin: 0;
+  color: #d8dedb;
+  font-size: 12px;
 }
 
 .share-actions {

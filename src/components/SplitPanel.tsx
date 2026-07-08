@@ -22,10 +22,12 @@ type SplitPanelProps = {
   activeExchangeRate: ExchangeRate;
   total: string;
   people: string;
+  payerName: string;
   itemName: string;
   date: string;
   onTotalChange: (value: string) => void;
   onPeopleChange: (value: string) => void;
+  onPayerNameChange: (value: string) => void;
   onItemNameChange: (value: string) => void;
   onDateChange: (value: string) => void;
 };
@@ -36,10 +38,12 @@ export function SplitPanel({
   activeExchangeRate,
   total,
   people,
+  payerName,
   itemName,
   date,
   onTotalChange,
   onPeopleChange,
+  onPayerNameChange,
   onItemNameChange,
   onDateChange,
 }: SplitPanelProps) {
@@ -52,11 +56,14 @@ export function SplitPanel({
   const perPersonJpy = splitBill(totalJpy, peopleCount);
   const totalTwd = cowRoundTwd(convertJpyToTwd(totalJpy, exchangeRate));
   const perPersonTwd = cowRoundTwd(convertJpyToTwd(perPersonJpy, exchangeRate));
+  const payerNameText = payerName.trim();
+  const otherPeopleCount = Math.max(peopleCount - 1, 0);
   const hasShareResult = totalJpy > 0 && peopleCount > 0 && perPersonJpy > 0 && perPersonTwd > 0;
   const splitShareText = useMemo(
     () =>
       createSplitShareText({
         itemName,
+        payerName,
         date,
         foreignCurrencyName: foreignCurrency.name,
         rateBaseName: activeExchangeRate.base === "TWD" ? "台幣" : foreignCurrency.name,
@@ -70,6 +77,7 @@ export function SplitPanel({
       }),
     [
       itemName,
+      payerName,
       date,
       foreignCurrency.name,
       activeExchangeRate.base,
@@ -116,6 +124,14 @@ export function SplitPanel({
       </button>
       {isOpen && (
         <div className="panel-body">
+          <label>
+            付款人（選填）
+            <AppInput
+              value={payerName}
+              onChange={(event) => onPayerNameChange(event.target.value)}
+              placeholder="例如：牛浩軒"
+            />
+          </label>
           <label>
             總金額 {foreignUnit}
             <AppInput
@@ -166,8 +182,21 @@ export function SplitPanel({
           )}
           {hasShareResult && (
             <div className="panel-result">
-              <strong>每人約 NT$ {formatNumber(perPersonTwd)}</strong>
-              <span>總計約 NT$ {formatNumber(totalTwd)}</span>
+              {payerNameText && peopleCount > 1 ? (
+                <>
+                  <strong>每人應付：{formatNumber(perPersonJpy)} {foreignUnit}</strong>
+                  <span>約 NT$ {formatNumber(perPersonTwd)}，總計約 NT$ {formatNumber(totalTwd)}</span>
+                  <div className="payer-summary">
+                    <span>{payerNameText}已先支付{formatNumber(totalJpy)} {foreignUnit}</span>
+                    <span>其餘{formatNumber(otherPeopleCount)}人各需支付{formatNumber(perPersonJpy)} {foreignUnit}給{payerNameText}。</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <strong>每人約 NT$ {formatNumber(perPersonTwd)}</strong>
+                  <span>總計約 NT$ {formatNumber(totalTwd)}</span>
+                </>
+              )}
             </div>
           )}
           <div className="share-actions" aria-label="費用分攤分享">

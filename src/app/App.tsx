@@ -52,10 +52,12 @@ export function App() {
             activeExchangeRate={calculator.activeExchangeRate}
             total={calculator.splitTotalAmount}
             people={calculator.splitPeople}
+            payerName={calculator.splitPayerName}
             itemName={calculator.splitItemName}
             date={calculator.splitDate}
             onTotalChange={calculator.setSplitTotalAmount}
             onPeopleChange={calculator.setSplitPeople}
+            onPayerNameChange={calculator.setSplitPayerName}
             onItemNameChange={calculator.setSplitItemName}
             onDateChange={calculator.setSplitDate}
           />

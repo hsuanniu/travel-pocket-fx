@@ -38,6 +38,7 @@ export type CalculatorState = {
   hasConversionResult: boolean;
   splitTotalAmount: string;
   splitPeople: string;
+  splitPayerName: string;
   splitItemName: string;
   splitDate: string;
   setAmountInput: (value: string) => void;
@@ -52,6 +53,7 @@ export type CalculatorState = {
   setCustomForeignCurrencyName: (value: string) => void;
   setSplitTotalAmount: (value: string) => void;
   setSplitPeople: (value: string) => void;
+  setSplitPayerName: (value: string) => void;
   setSplitItemName: (value: string) => void;
   setSplitDate: (value: string) => void;
 };
@@ -258,6 +260,7 @@ export function useCalculatorStore(): CalculatorState {
     hasConversionResult,
     splitTotalAmount: appState.splitTotalAmount,
     splitPeople: appState.splitPeople,
+    splitPayerName: appState.splitPayerName,
     splitItemName: appState.splitItemName,
     splitDate: appState.splitDate,
     setAmountInput: (value) =>
@@ -295,6 +298,11 @@ export function useCalculatorStore(): CalculatorState {
       setAppState((current) => ({
         ...current,
         splitPeople: value,
+      })),
+    setSplitPayerName: (value) =>
+      setAppState((current) => ({
+        ...current,
+        splitPayerName: value,
       })),
     setSplitItemName: (value) =>
       setAppState((current) => ({
