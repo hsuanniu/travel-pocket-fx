@@ -129,7 +129,7 @@ export function SplitPanel({
             <AppInput
               value={payerName}
               onChange={(event) => onPayerNameChange(event.target.value)}
-              placeholder="例如：牛浩軒"
+              placeholder="例如：付款人名稱"
             />
           </label>
           <label>
