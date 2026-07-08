@@ -16,7 +16,7 @@ export function App() {
       <section className="phone-app" aria-label="Travel Smart Calculator">
         <HeroHeader
           title="旅遊算"
-          subtitle="Travel Pocket FX"
+          subtitle="Travel Pocket"
           icon={<img src="/icons/icon-192.png" alt="" />}
         />
 
@@ -64,7 +64,7 @@ export function App() {
         </div>
 
         <footer className="app-footer">
-          <span>Travel Pocket FX v1.0.0</span>
+          <span>Travel Pocket v1.0.0</span>
           <span>最後更新 2026/07/07</span>
         </footer>
 

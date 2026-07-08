@@ -1,7 +1,7 @@
 {
-  "name": "旅遊算",
-  "short_name": "旅遊算",
-  "description": "旅行換匯、比價與費用分攤工具",
+  "name": "Travel Pocket",
+  "short_name": "Travel Pocket",
+  "description": "為旅遊而設計的換匯、比價與費用分攤工具",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0b2a4a",
