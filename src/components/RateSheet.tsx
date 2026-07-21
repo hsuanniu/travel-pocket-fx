@@ -55,27 +55,91 @@ export function RateSheet({
 
   return (
     <div className="sheet-backdrop" role="presentation">
-      <section className="rate-sheet" role="dialog" aria-modal="true" aria-label="設定匯率">
+      <section className="rate-sheet" role="dialog" aria-modal="true" aria-label="幣別設定">
         <div className="sheet-title">
           <div>
-            <h2>匯率設定</h2>
-            <p>目前匯率以台幣換外幣計算</p>
+            <h2>幣別設定</h2>
+            <p>更換幣別或設定今日匯率</p>
           </div>
           <button className="icon-button" type="button" onClick={onClose} aria-label="關閉">
             <X size={20} />
           </button>
         </div>
-        <div className="rate-editor" aria-label="匯率方向與數值">
+
+        <div className="currency-direction-editor" aria-label="來源幣別與目標幣別">
+          <div className="sheet-section-label">來源幣別</div>
+          {isBaseTwd ? (
+            <div className="currency-fixed-value">
+              <span>🇹🇼</span>
+              <strong>台幣</strong>
+            </div>
+          ) : (
+            <label className="currency-select-label">
+              外幣
+              <select
+                value={foreignCurrencyCode}
+                onChange={(event) => onForeignCurrencyChange(event.target.value as ForeignCurrencyCode)}
+              >
+                {foreignCurrencyOptions.map((currency) => (
+                  <option key={currency.code} value={currency.code}>
+                    {currency.flag} {currency.name}（{currency.code}）
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
+          <button
+            className="sheet-swap-button"
+            type="button"
+            onClick={onSwapRateDirection}
+            aria-label="交換來源與目標幣別"
+          >
+            <ArrowLeftRight size={16} />
+          </button>
+
+          <div className="sheet-section-label">目標幣別</div>
+          {isBaseTwd ? (
+            <label className="currency-select-label">
+              外幣
+              <select
+                value={foreignCurrencyCode}
+                onChange={(event) => onForeignCurrencyChange(event.target.value as ForeignCurrencyCode)}
+              >
+                {foreignCurrencyOptions.map((currency) => (
+                  <option key={currency.code} value={currency.code}>
+                    {currency.flag} {currency.name}（{currency.code}）
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            <div className="currency-fixed-value">
+              <span>🇹🇼</span>
+              <strong>台幣</strong>
+            </div>
+          )}
+        </div>
+
+        {foreignCurrencyCode === "CUSTOM" && (
+          <label>
+            自訂外幣名稱
+            <AppInput
+              value={customForeignCurrencyName}
+              onChange={(event) => onCustomForeignCurrencyNameChange(event.target.value)}
+              placeholder="例如：新加坡幣"
+            />
+          </label>
+        )}
+
+        <div className="rate-editor" aria-label="匯率設定">
+          <div className="sheet-section-label">匯率設定</div>
+          <button className="rate-refresh-button" type="button" onClick={onRefreshReferenceRate}>
+            自動更新今日匯率
+          </button>
+          <div className="rate-manual-label">手動輸入匯率</div>
           <div className="rate-editor-row">
             <span className="rate-side">1 {baseName}</span>
-            <button
-              className="mini-swap-button"
-              type="button"
-              onClick={onSwapRateDirection}
-              aria-label="交換匯率方向"
-            >
-              <ArrowLeftRight size={15} />
-            </button>
             <AppInput
               inputMode="decimal"
               value={rateInput}
@@ -88,33 +152,7 @@ export function RateSheet({
           </div>
           <p>{baseCode} / {targetCode}</p>
           {rateStatusMessage && <p className="rate-status-message">{rateStatusMessage}</p>}
-          <button className="rate-refresh-button" type="button" onClick={onRefreshReferenceRate}>
-            重新取得今日匯率
-          </button>
         </div>
-        <label className="currency-select-label">
-          外幣顯示名稱
-          <select
-            value={foreignCurrencyCode}
-            onChange={(event) => onForeignCurrencyChange(event.target.value as ForeignCurrencyCode)}
-          >
-            {foreignCurrencyOptions.map((currency) => (
-              <option key={currency.code} value={currency.code}>
-                {currency.flag} {currency.name}（{currency.code}）
-              </option>
-            ))}
-          </select>
-        </label>
-        {foreignCurrencyCode === "CUSTOM" && (
-          <label>
-            自訂外幣名稱
-            <AppInput
-              value={customForeignCurrencyName}
-              onChange={(event) => onCustomForeignCurrencyNameChange(event.target.value)}
-              placeholder="例如：新加坡幣"
-            />
-          </label>
-        )}
         <AppButton
           variant="primary"
           type="button"
@@ -125,7 +163,7 @@ export function RateSheet({
           }}
         >
           <Check size={18} />
-          儲存
+          儲存手動匯率
         </AppButton>
       </section>
     </div>

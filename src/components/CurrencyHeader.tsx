@@ -1,9 +1,7 @@
-import { ArrowLeftRight, Settings2 } from "lucide-react";
+import { ArrowLeftRight, Coins } from "lucide-react";
 import type { ExchangeRate } from "../features/currency/currencyTypes";
 import { currencies } from "../features/currency/currencies";
-import {
-  type ForeignCurrencyDisplay,
-} from "../utils/displayCurrency";
+import { type ForeignCurrencyDisplay } from "../utils/displayCurrency";
 
 type CurrencyHeaderProps = {
   exchangeRate: ExchangeRate;
@@ -29,7 +27,12 @@ export function CurrencyHeader({
 
   return (
     <header className="currency-header">
-      <div>
+      <button
+        className="currency-summary-button"
+        type="button"
+        onClick={onSettingsClick}
+        aria-label="更換幣別與匯率設定"
+      >
         <div className="currency-pair">
           <span>{baseFlag}</span>
           <strong>
@@ -45,13 +48,19 @@ export function CurrencyHeader({
             <p>例如：1 台幣 = 5.0761 {foreignCurrency.name}</p>
           </div>
         )}
-      </div>
+      </button>
       <div className="header-actions">
         <button className="icon-button" type="button" onClick={onSwapClick} aria-label="調換幣別">
           <ArrowLeftRight size={19} />
         </button>
-        <button className="icon-button" type="button" onClick={onSettingsClick} aria-label="設定匯率">
-          <Settings2 size={20} />
+        <button
+          className="currency-entry-button"
+          type="button"
+          onClick={onSettingsClick}
+          aria-label="更換幣別與匯率設定"
+        >
+          <Coins size={18} />
+          <span>幣別</span>
         </button>
       </div>
     </header>
