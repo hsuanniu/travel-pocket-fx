@@ -6,6 +6,7 @@ import { RateSheet } from "../components/RateSheet";
 import { SplitPanel } from "../components/SplitPanel";
 import { HeroHeader } from "../components/ui/HeroHeader";
 import { useCalculatorStore } from "../store/calculatorStore";
+import { appMeta } from "./appMeta";
 
 export function App() {
   const [isRateSheetOpen, setIsRateSheetOpen] = useState(false);
@@ -13,10 +14,10 @@ export function App() {
 
   return (
     <main className="app-shell">
-      <section className="phone-app" aria-label="Travel Smart Calculator">
+      <section className="phone-app" aria-label={`${appMeta.name} / ${appMeta.subtitle}`}>
         <HeroHeader
-          title="旅遊算"
-          subtitle="Travel Pocket"
+          title={appMeta.name}
+          subtitle={appMeta.subtitle}
           icon={<img src="/icons/icon-192.png" alt="" />}
         />
 
@@ -64,8 +65,8 @@ export function App() {
         </div>
 
         <footer className="app-footer">
-          <span>Travel Pocket v1.0.0</span>
-          <span>最後更新 2026/07/07</span>
+          <span>{appMeta.subtitle} v{appMeta.version}</span>
+          <span>最後更新 {appMeta.lastUpdated}</span>
         </footer>
 
         <RateSheet

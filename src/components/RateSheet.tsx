@@ -1,4 +1,5 @@
 import { ArrowLeftRight, Check, X } from "lucide-react";
+import { useEffect } from "react";
 import type { ExchangeRate } from "../features/currency/currencyTypes";
 import {
   foreignCurrencyOptions,
@@ -42,6 +43,27 @@ export function RateSheet({
   onForeignCurrencyChange,
   onCustomForeignCurrencyNameChange,
 }: RateSheetProps) {
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) {
     return null;
   }
@@ -54,7 +76,15 @@ export function RateSheet({
   const targetCode = isBaseTwd ? foreignUnit : "TWD";
 
   return (
-    <div className="sheet-backdrop" role="presentation">
+    <div
+      className="sheet-backdrop"
+      role="presentation"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose();
+        }
+      }}
+    >
       <section className="rate-sheet" role="dialog" aria-modal="true" aria-label="幣別設定">
         <div className="sheet-title">
           <div>

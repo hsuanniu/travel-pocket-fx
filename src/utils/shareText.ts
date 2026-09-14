@@ -8,15 +8,17 @@ export type SplitShareDetails = {
   rateBaseName: string;
   rateTargetName: string;
   displayExchangeRate: number;
-  totalJpy: number;
+  totalForeign: number;
   people: number;
-  perPersonJpy: number;
+  perPersonForeign: number;
   exchangeRate: number;
-  perPersonTwd: number;
+  perPersonTwd?: number;
 };
 
 export function createSplitShareText(details: SplitShareDetails): string {
   const payerName = details.payerName?.trim() ?? "";
+  const hasTwdEstimate = Number.isFinite(details.perPersonTwd) && Number(details.perPersonTwd) > 0;
+  const hasRate = Number.isFinite(details.displayExchangeRate) && details.displayExchangeRate > 0;
   const optionalLines = [
     details.itemName?.trim() ? `消費項目：${details.itemName.trim()}` : null,
     payerName ? `付款人：${payerName}` : null,
@@ -25,22 +27,29 @@ export function createSplitShareText(details: SplitShareDetails): string {
   const payerLines =
     payerName && details.people > 1
       ? [
-          `${payerName}已先支付${formatNumber(details.totalJpy)} ${details.foreignCurrencyName}`,
-          `其餘${formatNumber(details.people - 1)}人各需支付${formatNumber(details.perPersonJpy)} ${details.foreignCurrencyName}給${payerName}。`,
+          `${payerName}已先支付${formatNumber(details.totalForeign)} ${details.foreignCurrencyName}`,
+          `其餘${formatNumber(details.people - 1)}人各需支付${formatNumber(details.perPersonForeign)} ${details.foreignCurrencyName}給${payerName}。`,
         ]
       : [];
+  const rateLines = hasRate
+    ? [
+        "",
+        `匯率：1 ${details.rateBaseName} = ${formatRateForShare(details.displayExchangeRate)} ${details.rateTargetName}`,
+      ]
+    : [];
 
   return [
     "💰 費用分攤",
     "",
     ...optionalLines,
     optionalLines.length > 0 ? "" : null,
-    `總金額：${formatNumber(details.totalJpy)} ${details.foreignCurrencyName}`,
+    `總金額：${formatNumber(details.totalForeign)} ${details.foreignCurrencyName}`,
     `人數：${formatNumber(details.people)} 人`,
-    `每人：${formatNumber(details.perPersonJpy)} ${details.foreignCurrencyName}（約 ${formatNumber(details.perPersonTwd)} 台幣）`,
+    hasTwdEstimate
+      ? `每人：${formatNumber(details.perPersonForeign)} ${details.foreignCurrencyName}（約 ${formatNumber(Number(details.perPersonTwd))} 台幣）`
+      : `每人：${formatNumber(details.perPersonForeign)} ${details.foreignCurrencyName}`,
     ...payerLines,
-    "",
-    `匯率：1 ${details.rateBaseName} = ${formatRateForShare(details.displayExchangeRate)} ${details.rateTargetName}`,
+    ...rateLines,
     "",
     "———",
     "🐮 No Bull. Just Math.",

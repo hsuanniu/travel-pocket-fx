@@ -65,8 +65,8 @@ export function convertFxAmount(
   return amount / exchangeRate;
 }
 
-export function convertJpyToTwd(jpyAmount: number, exchangeRate: number): number {
-  return convertFxAmount(jpyAmount, "JPY", "TWD", exchangeRate);
+export function convertForeignToTwd(foreignAmount: number, exchangeRate: number): number {
+  return convertFxAmount(foreignAmount, "JPY", "TWD", exchangeRate);
 }
 
 export function getActiveExchangeRate(state: FxAppState): ExchangeRate {

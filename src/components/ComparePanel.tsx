@@ -6,7 +6,7 @@ import {
   getForeignCurrencyUnit,
   type ForeignCurrencyDisplay,
 } from "../utils/displayCurrency";
-import { convertJpyToTwd } from "../utils/fx";
+import { convertForeignToTwd } from "../utils/fx";
 import { formatNumber, formatPercent } from "../utils/formatMoney";
 import { cleanNumericInput, toNumber } from "../utils/numberInput";
 import { AppInput } from "./ui/AppInput";
@@ -22,7 +22,7 @@ export function ComparePanel({ exchangeRate, foreignCurrency }: ComparePanelProp
   const [foreignPrice, setForeignPrice] = useState("");
   const [taiwanPrice, setTaiwanPrice] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const foreignTwdPrice = cowRoundTwd(convertJpyToTwd(toNumber(foreignPrice), exchangeRate));
+  const foreignTwdPrice = cowRoundTwd(convertForeignToTwd(toNumber(foreignPrice), exchangeRate));
   const hasComparisonResult = foreignTwdPrice > 0 && toNumber(taiwanPrice) > 0;
   const comparison = useMemo(
     () => comparePrices(foreignTwdPrice, toNumber(taiwanPrice)),

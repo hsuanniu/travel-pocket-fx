@@ -7,7 +7,7 @@ import {
   getForeignCurrencyUnit,
   type ForeignCurrencyDisplay,
 } from "../utils/displayCurrency";
-import { convertJpyToTwd } from "../utils/fx";
+import { convertForeignToTwd } from "../utils/fx";
 import { formatNumber } from "../utils/formatMoney";
 import { cleanNumericInput, toNumber } from "../utils/numberInput";
 import { shareText } from "../utils/share";
@@ -51,14 +51,16 @@ export function SplitPanel({
   const [isOpen, setIsOpen] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
-  const totalJpy = toNumber(total);
+  const totalForeign = toNumber(total);
   const peopleCount = Math.floor(toNumber(people));
-  const perPersonJpy = splitBill(totalJpy, peopleCount);
-  const totalTwd = cowRoundTwd(convertJpyToTwd(totalJpy, exchangeRate));
-  const perPersonTwd = cowRoundTwd(convertJpyToTwd(perPersonJpy, exchangeRate));
+  const perPersonForeign = splitBill(totalForeign, peopleCount);
+  const hasExchangeRate = exchangeRate > 0;
+  const totalTwd = hasExchangeRate ? cowRoundTwd(convertForeignToTwd(totalForeign, exchangeRate)) : 0;
+  const perPersonTwd = hasExchangeRate ? cowRoundTwd(convertForeignToTwd(perPersonForeign, exchangeRate)) : 0;
+  const hasTwdEstimate = hasExchangeRate && perPersonTwd > 0;
   const payerNameText = payerName.trim();
   const otherPeopleCount = Math.max(peopleCount - 1, 0);
-  const hasShareResult = totalJpy > 0 && peopleCount > 0 && perPersonJpy > 0 && perPersonTwd > 0;
+  const hasShareResult = totalForeign > 0 && peopleCount > 0 && perPersonForeign > 0;
   const splitShareText = useMemo(
     () =>
       createSplitShareText({
@@ -69,11 +71,11 @@ export function SplitPanel({
         rateBaseName: activeExchangeRate.base === "TWD" ? "台幣" : foreignCurrency.name,
         rateTargetName: activeExchangeRate.target === "TWD" ? "台幣" : foreignCurrency.name,
         displayExchangeRate: activeExchangeRate.rate,
-        totalJpy,
+        totalForeign,
         people: peopleCount,
-        perPersonJpy,
+        perPersonForeign,
         exchangeRate,
-        perPersonTwd,
+        perPersonTwd: hasTwdEstimate ? perPersonTwd : undefined,
       }),
     [
       itemName,
@@ -83,10 +85,11 @@ export function SplitPanel({
       activeExchangeRate.base,
       activeExchangeRate.target,
       activeExchangeRate.rate,
-      totalJpy,
+      totalForeign,
       peopleCount,
-      perPersonJpy,
+      perPersonForeign,
       exchangeRate,
+      hasTwdEstimate,
       perPersonTwd,
     ],
   );
@@ -184,17 +187,25 @@ export function SplitPanel({
             <div className="panel-result">
               {payerNameText && peopleCount > 1 ? (
                 <>
-                  <strong>每人應付：{formatNumber(perPersonJpy)} {foreignUnit}</strong>
-                  <span>約 NT$ {formatNumber(perPersonTwd)}，總計約 NT$ {formatNumber(totalTwd)}</span>
+                  <strong>每人應付：{formatNumber(perPersonForeign)} {foreignUnit}</strong>
+                  {hasTwdEstimate ? (
+                    <span>約 NT$ {formatNumber(perPersonTwd)}，總計約 NT$ {formatNumber(totalTwd)}</span>
+                  ) : (
+                    <span>輸入匯率後顯示台幣約略金額</span>
+                  )}
                   <div className="payer-summary">
-                    <span>{payerNameText}已先支付{formatNumber(totalJpy)} {foreignUnit}</span>
-                    <span>其餘{formatNumber(otherPeopleCount)}人各需支付{formatNumber(perPersonJpy)} {foreignUnit}給{payerNameText}。</span>
+                    <span>{payerNameText}已先支付{formatNumber(totalForeign)} {foreignUnit}</span>
+                    <span>其餘{formatNumber(otherPeopleCount)}人各需支付{formatNumber(perPersonForeign)} {foreignUnit}給{payerNameText}。</span>
                   </div>
                 </>
               ) : (
                 <>
-                  <strong>每人約 NT$ {formatNumber(perPersonTwd)}</strong>
-                  <span>總計約 NT$ {formatNumber(totalTwd)}</span>
+                  <strong>每人：{formatNumber(perPersonForeign)} {foreignUnit}</strong>
+                  {hasTwdEstimate ? (
+                    <span>約 NT$ {formatNumber(perPersonTwd)}，總計約 NT$ {formatNumber(totalTwd)}</span>
+                  ) : (
+                    <span>輸入匯率後顯示台幣約略金額</span>
+                  )}
                 </>
               )}
             </div>
