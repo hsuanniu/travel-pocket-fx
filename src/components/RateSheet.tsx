@@ -74,6 +74,8 @@ export function RateSheet({
   const targetName = isBaseTwd ? foreignCurrency.name : "台幣";
   const baseCode = isBaseTwd ? "TWD" : foreignUnit;
   const targetCode = isBaseTwd ? foreignUnit : "TWD";
+  const shouldShowRateStatus =
+    Boolean(rateStatusMessage) && rateStatusMessage !== "每日參考匯率，可自行修改";
 
   return (
     <div
@@ -96,63 +98,69 @@ export function RateSheet({
           </button>
         </div>
 
-        <div className="currency-direction-editor" aria-label="來源幣別與目標幣別">
-          <div className="sheet-section-label">來源幣別</div>
-          {isBaseTwd ? (
-            <div className="currency-fixed-value">
-              <span>🇹🇼</span>
-              <strong>台幣</strong>
-            </div>
-          ) : (
-            <label className="currency-select-label">
-              外幣
-              <select
-                value={foreignCurrencyCode}
-                onChange={(event) => onForeignCurrencyChange(event.target.value as ForeignCurrencyCode)}
-              >
-                {foreignCurrencyOptions.map((currency) => (
-                  <option key={currency.code} value={currency.code}>
-                    {currency.flag} {currency.name}（{currency.code}）
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
+        <section className="sheet-group" aria-label="換算方向">
+          <div className="sheet-section-heading">
+            <span>換算方向</span>
+            <small>主畫面會同步更新</small>
+          </div>
+          <div className="currency-direction-editor" aria-label="來源幣別與目標幣別">
+            <div className="sheet-section-label">來源幣別</div>
+            {isBaseTwd ? (
+              <div className="currency-fixed-value">
+                <span>🇹🇼</span>
+                <strong>台幣</strong>
+              </div>
+            ) : (
+              <label className="currency-select-label">
+                外幣
+                <select
+                  value={foreignCurrencyCode}
+                  onChange={(event) => onForeignCurrencyChange(event.target.value as ForeignCurrencyCode)}
+                >
+                  {foreignCurrencyOptions.map((currency) => (
+                    <option key={currency.code} value={currency.code}>
+                      {currency.flag} {currency.name}（{currency.code}）
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
 
-          <button
-            className="sheet-swap-button"
-            type="button"
-            onClick={onSwapRateDirection}
-            aria-label="交換來源與目標幣別"
-          >
-            <ArrowLeftRight size={16} />
-          </button>
+            <button
+              className="sheet-swap-button"
+              type="button"
+              onClick={onSwapRateDirection}
+              aria-label="交換來源與目標幣別"
+            >
+              <ArrowLeftRight size={16} />
+            </button>
 
-          <div className="sheet-section-label">目標幣別</div>
-          {isBaseTwd ? (
-            <label className="currency-select-label">
-              外幣
-              <select
-                value={foreignCurrencyCode}
-                onChange={(event) => onForeignCurrencyChange(event.target.value as ForeignCurrencyCode)}
-              >
-                {foreignCurrencyOptions.map((currency) => (
-                  <option key={currency.code} value={currency.code}>
-                    {currency.flag} {currency.name}（{currency.code}）
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : (
-            <div className="currency-fixed-value">
-              <span>🇹🇼</span>
-              <strong>台幣</strong>
-            </div>
-          )}
-        </div>
+            <div className="sheet-section-label">目標幣別</div>
+            {isBaseTwd ? (
+              <label className="currency-select-label">
+                外幣
+                <select
+                  value={foreignCurrencyCode}
+                  onChange={(event) => onForeignCurrencyChange(event.target.value as ForeignCurrencyCode)}
+                >
+                  {foreignCurrencyOptions.map((currency) => (
+                    <option key={currency.code} value={currency.code}>
+                      {currency.flag} {currency.name}（{currency.code}）
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : (
+              <div className="currency-fixed-value">
+                <span>🇹🇼</span>
+                <strong>台幣</strong>
+              </div>
+            )}
+          </div>
+        </section>
 
         {foreignCurrencyCode === "CUSTOM" && (
-          <label>
+          <label className="sheet-group custom-currency-field">
             自訂外幣名稱
             <AppInput
               value={customForeignCurrencyName}
@@ -162,8 +170,11 @@ export function RateSheet({
           </label>
         )}
 
-        <div className="rate-editor" aria-label="匯率設定">
-          <div className="sheet-section-label">匯率設定</div>
+        <section className="rate-editor sheet-group" aria-label="匯率設定">
+          <div className="sheet-section-heading">
+            <span>今日匯率</span>
+            <small>每日參考匯率，可自行修改</small>
+          </div>
           <button className="rate-refresh-button" type="button" onClick={onRefreshReferenceRate}>
             自動更新今日匯率
           </button>
@@ -181,8 +192,8 @@ export function RateSheet({
             <span className="rate-side">{targetName}</span>
           </div>
           <p>{baseCode} / {targetCode}</p>
-          {rateStatusMessage && <p className="rate-status-message">{rateStatusMessage}</p>}
-        </div>
+          {shouldShowRateStatus && <p className="rate-status-message">{rateStatusMessage}</p>}
+        </section>
         <AppButton
           variant="primary"
           type="button"

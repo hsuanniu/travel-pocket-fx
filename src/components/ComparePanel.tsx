@@ -49,24 +49,26 @@ export function ComparePanel({ exchangeRate, foreignCurrency }: ComparePanelProp
       </button>
       {isOpen && (
         <div className="panel-body">
-          <label>
-            {foreignCurrency.name}價格 {foreignUnit}
-            <AppInput
-              inputMode="decimal"
-              value={foreignPrice}
-              placeholder={`例如：1000`}
-              onChange={(event) => setForeignPrice(cleanNumericInput(event.target.value))}
-            />
-          </label>
-          <label>
-            台灣價格 TWD
-            <AppInput
-              inputMode="decimal"
-              value={taiwanPrice}
-              placeholder="例如：200"
-              onChange={(event) => setTaiwanPrice(cleanNumericInput(event.target.value))}
-            />
-          </label>
+          <div className="premium-field-stack">
+            <label className="premium-field">
+              {foreignCurrency.name}價格 {foreignUnit}
+              <AppInput
+                inputMode="decimal"
+                value={foreignPrice}
+                placeholder={`例如：1000`}
+                onChange={(event) => setForeignPrice(cleanNumericInput(event.target.value))}
+              />
+            </label>
+            <label className="premium-field">
+              台灣價格 TWD
+              <AppInput
+                inputMode="decimal"
+                value={taiwanPrice}
+                placeholder="例如：200"
+                onChange={(event) => setTaiwanPrice(cleanNumericInput(event.target.value))}
+              />
+            </label>
+          </div>
           {hasComparisonResult && (
             <div className="panel-result">
               <strong>{message}</strong>

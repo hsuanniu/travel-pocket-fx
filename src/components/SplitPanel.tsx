@@ -74,7 +74,6 @@ export function SplitPanel({
         totalForeign,
         people: peopleCount,
         perPersonForeign,
-        exchangeRate,
         perPersonTwd: hasTwdEstimate ? perPersonTwd : undefined,
       }),
     [
@@ -88,7 +87,6 @@ export function SplitPanel({
       totalForeign,
       peopleCount,
       perPersonForeign,
-      exchangeRate,
       hasTwdEstimate,
       perPersonTwd,
     ],
@@ -127,32 +125,34 @@ export function SplitPanel({
       </button>
       {isOpen && (
         <div className="panel-body">
-          <label>
-            付款人（選填）
-            <AppInput
-              value={payerName}
-              onChange={(event) => onPayerNameChange(event.target.value)}
-              placeholder="例如：付款人名稱"
-            />
-          </label>
-          <label>
-            總金額 {foreignUnit}
-            <AppInput
-              inputMode="decimal"
-              value={total}
-              placeholder="例如：40000"
-              onChange={(event) => onTotalChange(cleanNumericInput(event.target.value))}
-            />
-          </label>
-          <label>
-            人數
-            <AppInput
-              inputMode="numeric"
-              value={people}
-              placeholder="例如：4"
-              onChange={(event) => onPeopleChange(cleanNumericInput(event.target.value))}
-            />
-          </label>
+          <div className="premium-field-stack">
+            <label className="premium-field">
+              付款人（選填）
+              <AppInput
+                value={payerName}
+                onChange={(event) => onPayerNameChange(event.target.value)}
+                placeholder="例如：付款人名稱"
+              />
+            </label>
+            <label className="premium-field">
+              總金額 {foreignUnit}
+              <AppInput
+                inputMode="decimal"
+                value={total}
+                placeholder="例如：40000"
+                onChange={(event) => onTotalChange(cleanNumericInput(event.target.value))}
+              />
+            </label>
+            <label className="premium-field">
+              人數
+              <AppInput
+                inputMode="numeric"
+                value={people}
+                placeholder="例如：4"
+                onChange={(event) => onPeopleChange(cleanNumericInput(event.target.value))}
+              />
+            </label>
+          </div>
           <button
             className="more-toggle"
             type="button"
@@ -164,7 +164,7 @@ export function SplitPanel({
           </button>
           {isMoreOpen && (
             <div className="optional-fields">
-              <label>
+              <label className="premium-field">
                 消費項目
                 <AppInput
                   value={itemName}
@@ -172,7 +172,7 @@ export function SplitPanel({
                   placeholder="晚餐、超市、咖啡、計程車"
                 />
               </label>
-              <label>
+              <label className="premium-field">
                 日期
                 <AppInput
                   value={date}

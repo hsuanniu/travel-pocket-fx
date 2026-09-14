@@ -11,7 +11,6 @@ export type SplitShareDetails = {
   totalForeign: number;
   people: number;
   perPersonForeign: number;
-  exchangeRate: number;
   perPersonTwd?: number;
 };
 

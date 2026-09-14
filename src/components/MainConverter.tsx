@@ -48,11 +48,13 @@ export function MainConverter({
   const amountSizeClass = getAmountSizeClass(amountInput);
   const amountInputRef = useRef<HTMLInputElement>(null);
   const displayAmount = amountInput ? formatDisplayAmount(amountInput) : "請輸入金額";
+  const shouldShowRateStatus =
+    Boolean(rateStatusMessage) && (!displayExchangeRate || rateStatusMessage.includes("無法取得"));
 
   return (
     <GlassCard className="converter-panel" aria-label={`${baseLabel} 換算 ${targetLabel}`}>
       <div className="amount-row">
-        <div className="amount-top-row">
+        <div className={`amount-top-row${amountInput ? " has-clear" : ""}`}>
           <div
             className="amount-display-shell"
             onClick={() => amountInputRef.current?.focus()}
@@ -100,7 +102,7 @@ export function MainConverter({
           1 {rateBaseName} = {formatRateCompact(displayExchangeRate)} {rateTargetName}
         </div>
       )}
-      {rateStatusMessage && (
+      {shouldShowRateStatus && (
         <div className="converter-rate-status">
           <Badge>{rateStatusMessage}</Badge>
         </div>
