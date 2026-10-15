@@ -1,5 +1,5 @@
 import type { CurrencyCode, ExchangeRate } from "../features/currency/currencyTypes";
-import type { ForeignCurrencyCode } from "./displayCurrency";
+import { foreignCurrencyOptions, type ForeignCurrencyCode } from "./displayCurrency";
 import type { FxAppState, FxDirection } from "./fx";
 import { getDirection } from "./fx";
 
@@ -16,6 +16,7 @@ const keys = {
   foreignCurrencyCode: `${storagePrefix}:foreignCurrencyCode`,
   customForeignCurrencyName: `${storagePrefix}:customForeignCurrencyName`,
   splitTotalAmount: `${storagePrefix}:splitTotalAmount`,
+  splitCurrencyCode: `${storagePrefix}:splitCurrencyCode`,
   splitPeople: `${storagePrefix}:splitPeople`,
   splitPayerName: `${storagePrefix}:splitPayerName`,
   splitItemName: `${storagePrefix}:splitItemName`,
@@ -62,7 +63,7 @@ export type DailyRateRecord = {
   rate: number | null;
 };
 
-export function loadAppState(): FxAppState {
+function loadStoredAppState(): FxAppState {
   if (!hasSavedAppState() && !hasLegacyAppState()) {
     return defaultAppState;
   }
@@ -84,6 +85,7 @@ export function loadAppState(): FxAppState {
       customForeignCurrencyName:
         readString(keys.customForeignCurrencyName) ?? defaultAppState.customForeignCurrencyName,
       splitTotalAmount: readString(keys.splitTotalAmount) ?? defaultAppState.splitTotalAmount,
+      splitCurrencyCode: readCurrency(keys.splitCurrencyCode) ?? fromCurrency,
       splitPeople: readString(keys.splitPeople) ?? defaultAppState.splitPeople,
       splitPayerName: readString(keys.splitPayerName) ?? defaultAppState.splitPayerName,
       splitItemName: readString(keys.splitItemName) ?? defaultAppState.splitItemName,
@@ -95,7 +97,7 @@ export function loadAppState(): FxAppState {
 }
 
 export function saveAppState(state: FxAppState): void {
-  writeString(keys.stateVersion, "1");
+  writeString(keys.stateVersion, "2");
   writeString(keys.fromCurrency, state.fromCurrency);
   writeString(keys.toCurrency, state.toCurrency);
   writeString(keys.inputAmount, state.inputAmount);
@@ -104,6 +106,7 @@ export function saveAppState(state: FxAppState): void {
   writeString(keys.foreignCurrencyCode, state.foreignCurrencyCode);
   writeString(keys.customForeignCurrencyName, state.customForeignCurrencyName);
   writeString(keys.splitTotalAmount, state.splitTotalAmount);
+  writeString(keys.splitCurrencyCode, state.splitCurrencyCode ?? state.fromCurrency);
   writeString(keys.splitPeople, state.splitPeople);
   writeString(keys.splitPayerName, state.splitPayerName);
   writeString(keys.splitItemName, state.splitItemName);
@@ -195,7 +198,6 @@ function migrateLegacyState(): FxAppState {
     splitDate: defaultAppState.splitDate,
   };
 
-  saveAppState(migratedState);
   return migratedState;
 }
 
@@ -271,7 +273,7 @@ function normalizeLegacyRate(rate: number): number {
 
 function readCurrency(key: string): CurrencyCode | null {
   const value = readString(key);
-  return value === "TWD" || value === "JPY" ? value : null;
+  return foreignCurrencyOptions.some((currency) => currency.code === value) ? value as CurrencyCode : null;
 }
 
 function readDirection(key: string): FxDirection | null {
@@ -324,4 +326,36 @@ function getTodayInputValue(): string {
   const day = String(today.getDate()).padStart(2, "0");
 
   return `${year}/${month}/${day}`;
+}
+
+export function loadAppState(): FxAppState {
+  const isCurrent = readString(keys.stateVersion) === "2";
+  const state = loadStoredAppState();
+  if (isCurrent) return state;
+  const fromCurrency = state.fromCurrency === "TWD" ? "TWD" : state.foreignCurrencyCode;
+  const toCurrency = state.toCurrency === "TWD" ? "TWD" : state.foreignCurrencyCode;
+  const exchangeRate = state.fromCurrency === "TWD" ? state.exchangeRate : state.exchangeRate > 0 ? 1 / state.exchangeRate : 0;
+  const migrated = { ...state, fromCurrency, toCurrency, exchangeRate, splitCurrencyCode: state.splitTotalAmount ? state.foreignCurrencyCode : fromCurrency, lastDirection: getDirection(fromCurrency, toCurrency) };
+  const oldRecord = loadDailyRateRecord(state.foreignCurrencyCode);
+  if (oldRecord) savePairRate(fromCurrency, toCurrency, {
+    source: oldRecord.source, date: oldRecord.date,
+    rate: oldRecord.source === "failed" ? null : exchangeRate,
+  });
+  return migrated;
+}
+
+export type PairRateRecord = Pick<DailyRateRecord, "source" | "date" | "rate">;
+
+export function loadPairRate(from: CurrencyCode, to: CurrencyCode): PairRateRecord | null {
+  const record = readJson<PairRateRecord>(`${storagePrefix}:pair:${from}:${to}`);
+  if (!record || !["manual", "api", "failed"].includes(record.source) || typeof record.date !== "string") return null;
+  if (record.source !== "failed" && !(typeof record.rate === "number" && Number.isFinite(record.rate) && record.rate > 0)) return null;
+  return record;
+}
+
+export function savePairRate(from: CurrencyCode, to: CurrencyCode, record: PairRateRecord): void {
+  writeString(`${storagePrefix}:pair:${from}:${to}`, JSON.stringify(record));
+  writeString(`${storagePrefix}:pair:${to}:${from}`, JSON.stringify({
+    ...record, rate: record.rate && record.rate > 0 ? 1 / record.rate : null,
+  }));
 }

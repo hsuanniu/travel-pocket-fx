@@ -23,8 +23,8 @@ export function App() {
 
         <CurrencyHeader
           exchangeRate={calculator.activeExchangeRate}
-          twdToJpyRate={calculator.exchangeRate}
-          foreignCurrency={calculator.foreignCurrency}
+          sourceCurrency={calculator.sourceCurrency}
+          targetCurrency={calculator.targetCurrency}
           onSwapClick={calculator.swapDirection}
           onSettingsClick={() => setIsRateSheetOpen(true)}
         />
@@ -33,7 +33,8 @@ export function App() {
           amountInput={calculator.amountInput}
           baseCurrency={calculator.activeExchangeRate.base}
           targetCurrency={calculator.activeExchangeRate.target}
-          foreignCurrency={calculator.foreignCurrency}
+          sourceCurrency={calculator.sourceCurrency}
+          targetDisplay={calculator.targetCurrency}
           displayExchangeRate={calculator.activeExchangeRate.rate}
           rateStatusMessage={calculator.rateStatusMessage}
           roundedConvertedAmount={calculator.roundedConvertedAmount}
@@ -45,12 +46,14 @@ export function App() {
         <div className="tool-grid">
           <ComparePanel
             exchangeRate={calculator.exchangeRate}
-            foreignCurrency={calculator.foreignCurrency}
+            sourceCurrency={calculator.sourceCurrency}
+            targetCurrency={calculator.targetCurrency}
           />
           <SplitPanel
-            exchangeRate={calculator.exchangeRate}
-            foreignCurrency={calculator.foreignCurrency}
-            activeExchangeRate={calculator.activeExchangeRate}
+            exchangeRate={calculator.splitRate}
+            sourceCurrency={calculator.splitSourceCurrency}
+            targetCurrency={calculator.splitTargetCurrency}
+            activeExchangeRate={calculator.splitExchangeRate}
             total={calculator.splitTotalAmount}
             people={calculator.splitPeople}
             payerName={calculator.splitPayerName}
@@ -72,8 +75,8 @@ export function App() {
         <RateSheet
           isOpen={isRateSheetOpen}
           rateInput={calculator.rateInput}
-          foreignCurrency={calculator.foreignCurrency}
-          foreignCurrencyCode={calculator.foreignCurrencyCode}
+          sourceCurrency={calculator.sourceCurrency}
+          targetCurrency={calculator.targetCurrency}
           customForeignCurrencyName={calculator.customForeignCurrencyName}
           activeExchangeRate={calculator.activeExchangeRate}
           rateStatusMessage={calculator.rateStatusMessage}
@@ -82,7 +85,8 @@ export function App() {
           onClose={() => setIsRateSheetOpen(false)}
           onRefreshReferenceRate={calculator.refreshReferenceRate}
           onSwapRateDirection={calculator.swapRateDirection}
-          onForeignCurrencyChange={calculator.setForeignCurrencyCode}
+          onFromCurrencyChange={calculator.setFromCurrency}
+          onToCurrencyChange={calculator.setToCurrency}
           onCustomForeignCurrencyNameChange={calculator.setCustomForeignCurrencyName}
         />
       </section>

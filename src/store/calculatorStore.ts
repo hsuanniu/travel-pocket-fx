@@ -1,327 +1,116 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { ExchangeRate } from "../features/currency/currencyTypes";
-import { cowRoundAmount } from "../features/rounding/cowRounding";
-import {
-  getForeignCurrencyDisplay,
-  type ForeignCurrencyCode,
-  type ForeignCurrencyDisplay,
-} from "../utils/displayCurrency";
-import {
-  convertFxAmount,
-  getActiveExchangeRate,
-  normalizeExchangeRate,
-  swapDirection as swapFxDirection,
-  type FxAppState,
-} from "../utils/fx";
+import { useEffect, useRef, useState } from "react";
+import { getForeignCurrencyDisplay, type ForeignCurrencyCode } from "../utils/displayCurrency";
+import { convertFxAmount, getActiveExchangeRate, getDirection, normalizeExchangeRate, swapDirection as swapFxDirection, type FxAppState } from "../utils/fx";
 import { toNumber } from "../utils/numberInput";
-import { canFetchReferenceRate, fetchTwdReferenceRate } from "../utils/rateApi";
-import {
-  getTodayCacheDate,
-  hasManualRateOverride,
-  loadAppState,
-  loadDailyRateRecord,
-  saveAppState,
-  saveDailyRateRecord,
-  saveManualRateOverride,
-} from "../utils/storage";
+import { canFetchReferenceRate, fetchReferenceRate } from "../utils/rateApi";
+import { getTodayCacheDate, loadAppState, loadPairRate, saveAppState, savePairRate } from "../utils/storage";
 
-export type CalculatorState = {
-  amountInput: string;
-  rateInput: string;
-  exchangeRate: number;
-  activeExchangeRate: ExchangeRate;
-  rateStatusMessage: string;
-  foreignCurrency: ForeignCurrencyDisplay;
-  foreignCurrencyCode: ForeignCurrencyCode;
-  customForeignCurrencyName: string;
-  roundedConvertedAmount: number;
-  hasConversionResult: boolean;
-  splitTotalAmount: string;
-  splitPeople: string;
-  splitPayerName: string;
-  splitItemName: string;
-  splitDate: string;
-  setAmountInput: (value: string) => void;
-  appendAmount: (value: string) => void;
-  clearAmount: () => void;
-  swapDirection: () => void;
-  setRateInput: (value: string) => void;
-  saveRate: () => boolean;
-  refreshReferenceRate: () => void;
-  swapRateDirection: () => void;
-  setForeignCurrencyCode: (value: ForeignCurrencyCode) => void;
-  setCustomForeignCurrencyName: (value: string) => void;
-  setSplitTotalAmount: (value: string) => void;
-  setSplitPeople: (value: string) => void;
-  setSplitPayerName: (value: string) => void;
-  setSplitItemName: (value: string) => void;
-  setSplitDate: (value: string) => void;
-};
-
-export function useCalculatorStore(): CalculatorState {
-  const [appState, setAppState] = useState<FxAppState>(() => loadAppState());
-  const [rateInput, setRateInput] = useState(() =>
-    getDisplayRateInput(appState),
-  );
+export function useCalculatorStore() {
+  const [appState, setAppState] = useState<FxAppState>(loadAppState);
+  const [rateInput, setRateInput] = useState(() => displayRate(appState.exchangeRate));
   const [rateStatusMessage, setRateStatusMessage] = useState("");
-  const requestedReferenceKeyRef = useRef("");
-  const currentForeignCurrencyRef = useRef(appState.foreignCurrencyCode);
+  const [refresh, setRefresh] = useState(0);
+  const requestId = useRef(0);
+  const forceRefresh = useRef(false);
+  const stateRef = useRef(appState);
+  stateRef.current = appState;
 
-  const numericAmount = toNumber(appState.inputAmount);
-  const activeExchangeRate = useMemo(() => getActiveExchangeRate(appState), [appState]);
-  const foreignCurrency = useMemo(
-    () =>
-      getForeignCurrencyDisplay(
-        appState.foreignCurrencyCode,
-        appState.customForeignCurrencyName,
-      ),
-    [appState.foreignCurrencyCode, appState.customForeignCurrencyName],
-  );
-  const convertedAmount = useMemo(
-    () =>
-      convertFxAmount(
-        numericAmount,
-        appState.fromCurrency,
-        appState.toCurrency,
-        appState.exchangeRate,
-      ),
-    [numericAmount, appState.fromCurrency, appState.toCurrency, appState.exchangeRate],
-  );
-  const roundedConvertedAmount = useMemo(() => cowRoundAmount(convertedAmount), [convertedAmount]);
-  const hasConversionResult = numericAmount > 0 && appState.exchangeRate > 0;
+  useEffect(() => { saveAppState(appState); }, [appState]);
 
-  function applyReferenceRate(rate: number, currencyCode: ForeignCurrencyCode): void {
-    setAppState((current) => {
-      if (current.foreignCurrencyCode !== currencyCode) {
-        return current;
-      }
-
-      const nextState = {
-        ...current,
-        exchangeRate: rate,
-      };
-
-      setRateInput(getDisplayRateInput(nextState));
-      return nextState;
-    });
-  }
-
-  function fetchAndApplyReferenceRate(currencyCode: ForeignCurrencyCode, force = false): void {
+  useEffect(() => {
+    const { fromCurrency: from, toCurrency: to } = appState;
+    const id = ++requestId.current;
+    const force = forceRefresh.current;
+    forceRefresh.current = false;
     const today = getTodayCacheDate();
-    const requestKey = `${today}:${currencyCode}${force ? ":force" : ""}`;
-
-    if (!canFetchReferenceRate(currencyCode)) {
-      setRateStatusMessage("");
+    const apply = (rate: number, message: string) => {
+      if (id !== requestId.current) return;
+      setAppState(current => current.fromCurrency === from && current.toCurrency === to ? { ...current, exchangeRate: rate } : current);
+      setRateInput(displayRate(rate));
+      setRateStatusMessage(message);
+    };
+    if (from === to) {
+      apply(1, "");
       return;
     }
-
-    if (!force && hasManualRateOverride(currencyCode, today)) {
-      setRateStatusMessage("已使用手動匯率，今日不會自動覆蓋");
+    const cached = loadPairRate(from, to);
+    if (!force && cached?.date === today) {
+      if (cached.rate) apply(cached.rate, cached.source === "manual" ? "已使用手動匯率，今日不會自動覆蓋" : "每日參考匯率，可自行修改");
+      else setRateStatusMessage("無法取得匯率，請手動輸入");
       return;
     }
-
-    if (!force && requestedReferenceKeyRef.current === requestKey) {
+    if (!canFetchReferenceRate(from) || !canFetchReferenceRate(to)) {
+      setRateStatusMessage("請手動輸入匯率");
       return;
     }
-
-    requestedReferenceKeyRef.current = requestKey;
-
-    void fetchTwdReferenceRate(currencyCode).then((referenceRate) => {
-      if (!force && hasManualRateOverride(currencyCode, today)) {
-        return;
-      }
-
-      if (referenceRate && referenceRate > 0) {
-        saveDailyRateRecord({
-          source: "api",
-          date: today,
-          currencyCode,
-          rate: referenceRate,
-        });
-        applyReferenceRate(referenceRate, currencyCode);
-        if (currentForeignCurrencyRef.current === currencyCode) {
-          setRateStatusMessage(force ? "已更新今日參考匯率" : "每日參考匯率，可自行修改");
-        }
-        return;
-      }
-
-      saveDailyRateRecord({
-        source: "failed",
-        date: today,
-        currencyCode,
-        rate: null,
-      });
-      if (currentForeignCurrencyRef.current === currencyCode) {
-        setRateStatusMessage("無法取得匯率，請手動輸入");
-      }
+    setRateStatusMessage("正在取得參考匯率");
+    void fetchReferenceRate(from, to).then(rate => {
+      if (id !== requestId.current) return;
+      savePairRate(from, to, { source: rate ? "api" : "failed", date: today, rate });
+      if (rate) apply(rate, force ? "已更新今日參考匯率" : "每日參考匯率，可自行修改");
+      else setRateStatusMessage("無法取得匯率，請手動輸入");
     });
-  }
+    return () => { requestId.current++; };
+  }, [appState.fromCurrency, appState.toCurrency, refresh]);
 
-  useEffect(() => {
-    saveAppState(appState);
-  }, [appState]);
-
-  useEffect(() => {
-    currentForeignCurrencyRef.current = appState.foreignCurrencyCode;
-  }, [appState.foreignCurrencyCode]);
-
-  useEffect(() => {
-    const currencyCode = appState.foreignCurrencyCode;
-    const today = getTodayCacheDate();
-    if (!canFetchReferenceRate(currencyCode)) {
-      setRateStatusMessage("");
-      return;
-    }
-
-    const storedRate = loadDailyRateRecord(currencyCode);
-
-    if (storedRate?.source === "manual" && storedRate.date === today) {
-      setRateStatusMessage("已使用手動匯率，今日不會自動覆蓋");
-      return;
-    }
-
-    if (storedRate?.source === "api" && storedRate.date === today && storedRate.rate) {
-      applyReferenceRate(storedRate.rate, currencyCode);
-      setRateStatusMessage("每日參考匯率，可自行修改");
-      return;
-    }
-
-    if (storedRate?.source === "failed" && storedRate.date === today) {
-      setRateStatusMessage("無法取得匯率，請手動輸入");
-      return;
-    }
-
-    fetchAndApplyReferenceRate(currencyCode);
-  }, [appState.foreignCurrencyCode]);
-
-  function appendAmount(value: string): void {
-    setAppState((current) => ({
-      ...current,
-      inputAmount: `${current.inputAmount}${value}`.replace(/^0+(?=\d)/, ""),
-    }));
-  }
-
-  function clearAmount(): void {
-    setAppState((current) => ({
-      ...current,
-      inputAmount: "",
-    }));
-  }
-
-  function swapDirection(): void {
-    setAppState((current) => {
-      const nextState = swapFxDirection(current);
-      setRateInput(getDisplayRateInput(nextState));
-      return nextState;
+  function changeCurrency(side: "fromCurrency" | "toCurrency", value: ForeignCurrencyCode) {
+    if (stateRef.current[side] === value) return;
+    requestId.current++;
+    setAppState(current => {
+      const next = { ...current, [side]: value, exchangeRate: 0 };
+      return { ...next, splitCurrencyCode: next.fromCurrency, lastDirection: getDirection(next.fromCurrency, next.toCurrency) };
     });
+    setRateInput("");
+    setRateStatusMessage("");
   }
-
-  function saveRate(): boolean {
-    const nextRate = normalizeExchangeRate(rateInput);
-
-    if (!nextRate) {
-      return false;
-    }
-
-    const normalizedRate = appState.fromCurrency === "TWD" ? nextRate : 1 / nextRate;
-
-    setAppState((current) => ({
-      ...current,
-      exchangeRate: normalizedRate,
-    }));
-    saveManualRateOverride(appState.foreignCurrencyCode, getTodayCacheDate(), normalizedRate);
+  function swapDirection() {
+    requestId.current++;
+    setAppState(current => swapFxDirection(current));
+    setRateInput(displayRate(stateRef.current.exchangeRate > 0 ? 1 / stateRef.current.exchangeRate : 0));
+  }
+  function saveRate() {
+    const rate = normalizeExchangeRate(rateInput);
+    if (!rate) return false;
+    requestId.current++;
+    const { fromCurrency: from, toCurrency: to } = stateRef.current;
+    const value = from === to ? 1 : rate;
+    savePairRate(from, to, { source: "manual", date: getTodayCacheDate(), rate: value });
+    setAppState(current => ({ ...current, exchangeRate: value }));
+    setRateInput(displayRate(value));
     setRateStatusMessage("已使用手動匯率，今日不會自動覆蓋");
     return true;
   }
-
-  function refreshReferenceRate(): void {
-    setRateStatusMessage("");
-    fetchAndApplyReferenceRate(appState.foreignCurrencyCode, true);
+  function update<K extends keyof FxAppState>(key: K, value: FxAppState[K]) {
+    setAppState(current => ({ ...current, [key]: value }));
   }
-
-  function swapRateDirection(): void {
-    setAppState((current) => {
-      const nextState = swapFxDirection(current);
-      setRateInput(getDisplayRateInput(nextState));
-      return nextState;
-    });
-  }
-
+  const sourceCurrency = getForeignCurrencyDisplay(appState.fromCurrency, appState.customForeignCurrencyName);
+  const targetCurrency = getForeignCurrencyDisplay(appState.toCurrency, appState.customForeignCurrencyName);
+  // Preserve the original denomination of an existing bill when migrating legacy data.
+  const splitIsReverse = appState.splitCurrencyCode === appState.toCurrency && appState.fromCurrency !== appState.toCurrency;
+  const splitSourceCurrency = splitIsReverse ? targetCurrency : sourceCurrency;
+  const splitTargetCurrency = splitIsReverse ? sourceCurrency : targetCurrency;
+  const splitRate = splitIsReverse && appState.exchangeRate > 0 ? 1 / appState.exchangeRate : appState.exchangeRate;
   return {
-    amountInput: appState.inputAmount,
-    rateInput,
-    exchangeRate: appState.exchangeRate,
-    activeExchangeRate,
-    rateStatusMessage,
-    foreignCurrency,
-    foreignCurrencyCode: appState.foreignCurrencyCode,
-    customForeignCurrencyName: appState.customForeignCurrencyName,
-    roundedConvertedAmount,
-    hasConversionResult,
-    splitTotalAmount: appState.splitTotalAmount,
-    splitPeople: appState.splitPeople,
-    splitPayerName: appState.splitPayerName,
-    splitItemName: appState.splitItemName,
-    splitDate: appState.splitDate,
-    setAmountInput: (value) =>
-      setAppState((current) => ({
-        ...current,
-        inputAmount: value,
-      })),
-    appendAmount,
-    clearAmount,
-    swapDirection,
-    setRateInput,
-    saveRate,
-    refreshReferenceRate,
-    swapRateDirection,
-    setForeignCurrencyCode: (value) => {
-      setRateStatusMessage("");
-      setRateInput("");
-      setAppState((current) => ({
-        ...current,
-        foreignCurrencyCode: value,
-        exchangeRate: current.foreignCurrencyCode === value ? current.exchangeRate : 0,
-      }));
-    },
-    setCustomForeignCurrencyName: (value) =>
-      setAppState((current) => ({
-        ...current,
-        customForeignCurrencyName: value,
-      })),
-    setSplitTotalAmount: (value) =>
-      setAppState((current) => ({
-        ...current,
-        splitTotalAmount: value,
-      })),
-    setSplitPeople: (value) =>
-      setAppState((current) => ({
-        ...current,
-        splitPeople: value,
-      })),
-    setSplitPayerName: (value) =>
-      setAppState((current) => ({
-        ...current,
-        splitPayerName: value,
-      })),
-    setSplitItemName: (value) =>
-      setAppState((current) => ({
-        ...current,
-        splitItemName: value,
-      })),
-    setSplitDate: (value) =>
-      setAppState((current) => ({
-        ...current,
-        splitDate: value,
-      })),
+    ...appState, amountInput: appState.inputAmount, rateInput, rateStatusMessage,
+    sourceCurrency, targetCurrency, activeExchangeRate: getActiveExchangeRate(appState),
+    splitSourceCurrency, splitTargetCurrency, splitRate,
+    splitExchangeRate: { ...getActiveExchangeRate(appState), base: splitSourceCurrency.code, target: splitTargetCurrency.code, rate: splitRate },
+    roundedConvertedAmount: convertFxAmount(toNumber(appState.inputAmount), appState.fromCurrency, appState.toCurrency, appState.exchangeRate),
+    hasConversionResult: toNumber(appState.inputAmount) > 0 && appState.exchangeRate > 0,
+    setAmountInput: (value: string) => update("inputAmount", value),
+    clearAmount: () => update("inputAmount", ""),
+    setRateInput, saveRate, swapDirection, swapRateDirection: swapDirection,
+    refreshReferenceRate: () => { forceRefresh.current = true; setRefresh(value => value + 1); },
+    setFromCurrency: (value: ForeignCurrencyCode) => changeCurrency("fromCurrency", value),
+    setToCurrency: (value: ForeignCurrencyCode) => changeCurrency("toCurrency", value),
+    setCustomForeignCurrencyName: (value: string) => update("customForeignCurrencyName", value),
+    setSplitTotalAmount: (value: string) => update("splitTotalAmount", value),
+    setSplitPeople: (value: string) => update("splitPeople", value),
+    setSplitPayerName: (value: string) => update("splitPayerName", value),
+    setSplitItemName: (value: string) => update("splitItemName", value),
+    setSplitDate: (value: string) => update("splitDate", value),
   };
 }
-
-function getDisplayRateInput(state: FxAppState): string {
-  if (state.exchangeRate <= 0) {
-    return "";
-  }
-
-  const displayRate = state.fromCurrency === "TWD" ? state.exchangeRate : 1 / state.exchangeRate;
-  return Number(displayRate.toFixed(5)).toString();
+function displayRate(rate: number): string {
+  return rate > 0 ? String(Number(rate.toPrecision(10))) : "";
 }

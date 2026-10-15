@@ -1,6 +1,6 @@
 export function formatNumber(value: number): string {
   return new Intl.NumberFormat("zh-TW", {
-    maximumFractionDigits: 0,
+    maximumFractionDigits: 2,
   }).format(value);
 }
 
@@ -56,7 +56,7 @@ export function formatRate(value: number): string {
 
 export function formatRateCompact(value: number): string {
   return new Intl.NumberFormat("zh-TW", {
-    maximumFractionDigits: 5,
+    maximumSignificantDigits: 8,
   }).format(value);
 }
 

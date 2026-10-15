@@ -1,4 +1,4 @@
-export type CurrencyCode = "JPY" | "TWD";
+export type CurrencyCode = import("../../utils/displayCurrency").ForeignCurrencyCode;
 
 export type Currency = {
   code: CurrencyCode;

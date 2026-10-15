@@ -1,28 +1,29 @@
 import { ArrowLeftRight, Coins } from "lucide-react";
 import type { ExchangeRate } from "../features/currency/currencyTypes";
-import { currencies } from "../features/currency/currencies";
+
 import { type ForeignCurrencyDisplay } from "../utils/displayCurrency";
 
 type CurrencyHeaderProps = {
   exchangeRate: ExchangeRate;
-  twdToJpyRate: number;
-  foreignCurrency: ForeignCurrencyDisplay;
+
+  sourceCurrency: ForeignCurrencyDisplay;
+  targetCurrency: ForeignCurrencyDisplay;
   onSwapClick: () => void;
   onSettingsClick: () => void;
 };
 
 export function CurrencyHeader({
   exchangeRate,
-  twdToJpyRate,
-  foreignCurrency,
+
+  sourceCurrency,
+  targetCurrency,
   onSwapClick,
   onSettingsClick,
 }: CurrencyHeaderProps) {
-  const base = currencies[exchangeRate.base];
-  const baseFlag = exchangeRate.base === "TWD" ? base.flag : foreignCurrency.flag;
-  const targetFlag = exchangeRate.target === "TWD" ? currencies.TWD.flag : foreignCurrency.flag;
-  const baseName = exchangeRate.base === "TWD" ? "台幣" : foreignCurrency.name;
-  const targetName = exchangeRate.target === "TWD" ? "台幣" : foreignCurrency.name;
+  const baseFlag = sourceCurrency.flag;
+  const targetFlag = targetCurrency.flag;
+  const baseName = sourceCurrency.name;
+  const targetName = targetCurrency.name;
   const hasRate = exchangeRate.rate > 0;
 
   return (
@@ -45,7 +46,7 @@ export function CurrencyHeader({
           <div className="first-step-hint">
             <span>第一步</span>
             <strong>請輸入今天匯率</strong>
-            <p>例如：1 台幣 = 5.0761 {foreignCurrency.name}</p>
+            <p>1 {baseName} = ? {targetName}</p>
           </div>
         )}
       </button>

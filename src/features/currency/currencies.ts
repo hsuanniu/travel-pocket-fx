@@ -1,6 +1,6 @@
 import type { Currency, CurrencyCode } from "./currencyTypes";
 
-export const currencies: Record<CurrencyCode, Currency> = {
+export const currencies: Partial<Record<CurrencyCode, Currency>> = {
   JPY: {
     code: "JPY",
     name: "日本",

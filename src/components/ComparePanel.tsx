@@ -1,12 +1,12 @@
 import { ChevronDown, ChevronUp, ShoppingBag } from "lucide-react";
 import { useMemo, useState } from "react";
 import { comparePrices } from "../features/comparison/comparePrices";
-import { cowRoundTwd } from "../features/rounding/cowRounding";
+
 import {
   getForeignCurrencyUnit,
   type ForeignCurrencyDisplay,
 } from "../utils/displayCurrency";
-import { convertForeignToTwd } from "../utils/fx";
+import { convertFxAmount } from "../utils/fx";
 import { formatNumber, formatPercent } from "../utils/formatMoney";
 import { cleanNumericInput, toNumber } from "../utils/numberInput";
 import { AppInput } from "./ui/AppInput";
@@ -14,24 +14,25 @@ import { SectionTitle } from "./ui/SectionTitle";
 
 type ComparePanelProps = {
   exchangeRate: number;
-  foreignCurrency: ForeignCurrencyDisplay;
+  sourceCurrency: ForeignCurrencyDisplay;
+  targetCurrency: ForeignCurrencyDisplay;
 };
 
-export function ComparePanel({ exchangeRate, foreignCurrency }: ComparePanelProps) {
-  const foreignUnit = getForeignCurrencyUnit(foreignCurrency);
+export function ComparePanel({ exchangeRate, sourceCurrency, targetCurrency }: ComparePanelProps) {
+  const foreignUnit = getForeignCurrencyUnit(sourceCurrency);
   const [foreignPrice, setForeignPrice] = useState("");
-  const [taiwanPrice, setTaiwanPrice] = useState("");
+  const [targetPrice, setTargetPrice] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const foreignTwdPrice = cowRoundTwd(convertForeignToTwd(toNumber(foreignPrice), exchangeRate));
-  const hasComparisonResult = foreignTwdPrice > 0 && toNumber(taiwanPrice) > 0;
+  const convertedPrice = (convertFxAmount(toNumber(foreignPrice), sourceCurrency.code, targetCurrency.code, exchangeRate));
+  const hasComparisonResult = convertedPrice > 0 && toNumber(targetPrice) > 0;
   const comparison = useMemo(
-    () => comparePrices(foreignTwdPrice, toNumber(taiwanPrice)),
-    [foreignTwdPrice, taiwanPrice],
+    () => comparePrices(convertedPrice, toNumber(targetPrice)),
+    [convertedPrice, targetPrice],
   );
 
   const message = {
-    japan: `${foreignCurrency.name}便宜 NT$ ${formatNumber(comparison.difference)}`,
-    taiwan: `台灣便宜 NT$ ${formatNumber(comparison.difference)}`,
+    japan: `${sourceCurrency.name}便宜 ${getForeignCurrencyUnit(targetCurrency)} ${formatNumber(comparison.difference)}`,
+    taiwan: `${targetCurrency.name}價格較低 ${getForeignCurrencyUnit(targetCurrency)} ${formatNumber(comparison.difference)}`,
     same: "兩邊差不多",
     empty: "輸入價格即可比較",
   }[comparison.cheaperMarket];
@@ -51,7 +52,7 @@ export function ComparePanel({ exchangeRate, foreignCurrency }: ComparePanelProp
         <div className="panel-body">
           <div className="premium-field-stack">
             <label className="premium-field">
-              {foreignCurrency.name}價格 {foreignUnit}
+              {sourceCurrency.name}價格 {foreignUnit}
               <AppInput
                 inputMode="decimal"
                 value={foreignPrice}
@@ -60,12 +61,12 @@ export function ComparePanel({ exchangeRate, foreignCurrency }: ComparePanelProp
               />
             </label>
             <label className="premium-field">
-              台灣價格 TWD
+              {targetCurrency.name}價格 {getForeignCurrencyUnit(targetCurrency)}
               <AppInput
                 inputMode="decimal"
-                value={taiwanPrice}
+                value={targetPrice}
                 placeholder="例如：200"
-                onChange={(event) => setTaiwanPrice(cleanNumericInput(event.target.value))}
+                onChange={(event) => setTargetPrice(cleanNumericInput(event.target.value))}
               />
             </label>
           </div>
@@ -73,7 +74,7 @@ export function ComparePanel({ exchangeRate, foreignCurrency }: ComparePanelProp
             <div className="panel-result">
               <strong>{message}</strong>
               <span>
-                {foreignCurrency.name}約 NT$ {formatNumber(foreignTwdPrice)} · 差{" "}
+                {sourceCurrency.name}約 {getForeignCurrencyUnit(targetCurrency)} {formatNumber(convertedPrice)} · 差{" "}
                 {formatPercent(comparison.savingPercent)}
               </span>
             </div>

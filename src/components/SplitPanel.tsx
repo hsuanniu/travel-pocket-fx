@@ -1,13 +1,13 @@
 import { ChevronDown, ChevronUp, Send, UsersRound } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { ExchangeRate } from "../features/currency/currencyTypes";
-import { cowRoundTwd } from "../features/rounding/cowRounding";
+
 import { splitBill } from "../features/split/splitBill";
 import {
   getForeignCurrencyUnit,
   type ForeignCurrencyDisplay,
 } from "../utils/displayCurrency";
-import { convertForeignToTwd } from "../utils/fx";
+import { convertFxAmount } from "../utils/fx";
 import { formatNumber } from "../utils/formatMoney";
 import { cleanNumericInput, toNumber } from "../utils/numberInput";
 import { shareText } from "../utils/share";
@@ -18,7 +18,8 @@ import { SectionTitle } from "./ui/SectionTitle";
 
 type SplitPanelProps = {
   exchangeRate: number;
-  foreignCurrency: ForeignCurrencyDisplay;
+  sourceCurrency: ForeignCurrencyDisplay;
+  targetCurrency: ForeignCurrencyDisplay;
   activeExchangeRate: ExchangeRate;
   total: string;
   people: string;
@@ -34,7 +35,8 @@ type SplitPanelProps = {
 
 export function SplitPanel({
   exchangeRate,
-  foreignCurrency,
+  sourceCurrency,
+  targetCurrency,
   activeExchangeRate,
   total,
   people,
@@ -47,7 +49,7 @@ export function SplitPanel({
   onItemNameChange,
   onDateChange,
 }: SplitPanelProps) {
-  const foreignUnit = getForeignCurrencyUnit(foreignCurrency);
+  const foreignUnit = getForeignCurrencyUnit(sourceCurrency);
   const [isOpen, setIsOpen] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
@@ -55,9 +57,9 @@ export function SplitPanel({
   const peopleCount = Math.floor(toNumber(people));
   const perPersonForeign = splitBill(totalForeign, peopleCount);
   const hasExchangeRate = exchangeRate > 0;
-  const totalTwd = hasExchangeRate ? cowRoundTwd(convertForeignToTwd(totalForeign, exchangeRate)) : 0;
-  const perPersonTwd = hasExchangeRate ? cowRoundTwd(convertForeignToTwd(perPersonForeign, exchangeRate)) : 0;
-  const hasTwdEstimate = hasExchangeRate && perPersonTwd > 0;
+  const totalConverted = hasExchangeRate ? (convertFxAmount(totalForeign, sourceCurrency.code, targetCurrency.code, exchangeRate)) : 0;
+  const perPersonConverted = hasExchangeRate ? (convertFxAmount(perPersonForeign, sourceCurrency.code, targetCurrency.code, exchangeRate)) : 0;
+  const hasConvertedEstimate = hasExchangeRate && perPersonConverted > 0;
   const payerNameText = payerName.trim();
   const otherPeopleCount = Math.max(peopleCount - 1, 0);
   const hasShareResult = totalForeign > 0 && peopleCount > 0 && perPersonForeign > 0;
@@ -67,28 +69,31 @@ export function SplitPanel({
         itemName,
         payerName,
         date,
-        foreignCurrencyName: foreignCurrency.name,
-        rateBaseName: activeExchangeRate.base === "TWD" ? "台幣" : foreignCurrency.name,
-        rateTargetName: activeExchangeRate.target === "TWD" ? "台幣" : foreignCurrency.name,
+        sourceCurrencyName: `${sourceCurrency.name} (${foreignUnit})`,
+        targetCurrencyName: `${targetCurrency.name} (${getForeignCurrencyUnit(targetCurrency)})`,
+        rateBaseName: `${sourceCurrency.name} (${foreignUnit})`,
+        rateTargetName: `${targetCurrency.name} (${getForeignCurrencyUnit(targetCurrency)})`,
         displayExchangeRate: activeExchangeRate.rate,
         totalForeign,
         people: peopleCount,
         perPersonForeign,
-        perPersonTwd: hasTwdEstimate ? perPersonTwd : undefined,
+        perPersonConverted: hasConvertedEstimate ? perPersonConverted : undefined,
       }),
     [
       itemName,
       payerName,
       date,
-      foreignCurrency.name,
+      sourceCurrency.name,
+      foreignUnit,
+      targetCurrency,
       activeExchangeRate.base,
       activeExchangeRate.target,
       activeExchangeRate.rate,
       totalForeign,
       peopleCount,
       perPersonForeign,
-      hasTwdEstimate,
-      perPersonTwd,
+      hasConvertedEstimate,
+      perPersonConverted,
     ],
   );
 
@@ -188,10 +193,10 @@ export function SplitPanel({
               {payerNameText && peopleCount > 1 ? (
                 <>
                   <strong>每人應付：{formatNumber(perPersonForeign)} {foreignUnit}</strong>
-                  {hasTwdEstimate ? (
-                    <span>約 NT$ {formatNumber(perPersonTwd)}，總計約 NT$ {formatNumber(totalTwd)}</span>
+                  {hasConvertedEstimate ? (
+                    <span>約 {getForeignCurrencyUnit(targetCurrency)} {formatNumber(perPersonConverted)}，總計約 {getForeignCurrencyUnit(targetCurrency)} {formatNumber(totalConverted)}</span>
                   ) : (
-                    <span>輸入匯率後顯示台幣約略金額</span>
+                    <span>輸入匯率後顯示{targetCurrency.name}約略金額</span>
                   )}
                   <div className="payer-summary">
                     <span>{payerNameText}已先支付{formatNumber(totalForeign)} {foreignUnit}</span>
@@ -201,10 +206,10 @@ export function SplitPanel({
               ) : (
                 <>
                   <strong>每人：{formatNumber(perPersonForeign)} {foreignUnit}</strong>
-                  {hasTwdEstimate ? (
-                    <span>約 NT$ {formatNumber(perPersonTwd)}，總計約 NT$ {formatNumber(totalTwd)}</span>
+                  {hasConvertedEstimate ? (
+                    <span>約 {getForeignCurrencyUnit(targetCurrency)} {formatNumber(perPersonConverted)}，總計約 {getForeignCurrencyUnit(targetCurrency)} {formatNumber(totalConverted)}</span>
                   ) : (
-                    <span>輸入匯率後顯示台幣約略金額</span>
+                    <span>輸入匯率後顯示{targetCurrency.name}約略金額</span>
                   )}
                 </>
               )}

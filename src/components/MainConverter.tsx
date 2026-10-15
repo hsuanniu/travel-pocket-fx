@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { X } from "lucide-react";
 import type { CurrencyCode } from "../features/currency/currencyTypes";
-import { currencies } from "../features/currency/currencies";
+
 import {
   getForeignCurrencyUnit,
   type ForeignCurrencyDisplay,
@@ -15,7 +15,8 @@ type MainConverterProps = {
   amountInput: string;
   baseCurrency: CurrencyCode;
   targetCurrency: CurrencyCode;
-  foreignCurrency: ForeignCurrencyDisplay;
+  sourceCurrency: ForeignCurrencyDisplay;
+  targetDisplay: ForeignCurrencyDisplay;
   displayExchangeRate: number;
   rateStatusMessage: string;
   roundedConvertedAmount: number;
@@ -28,7 +29,8 @@ export function MainConverter({
   amountInput,
   baseCurrency,
   targetCurrency,
-  foreignCurrency,
+  sourceCurrency,
+  targetDisplay,
   displayExchangeRate,
   rateStatusMessage,
   roundedConvertedAmount,
@@ -36,15 +38,13 @@ export function MainConverter({
   onChange,
   onClear,
 }: MainConverterProps) {
-  const target = currencies[targetCurrency];
-  const foreignUnit = getForeignCurrencyUnit(foreignCurrency);
-  const baseLabel = baseCurrency === "TWD" ? baseCurrency : foreignUnit;
-  const targetLabel = targetCurrency === "TWD" ? targetCurrency : foreignUnit;
-  const baseDisplayLabel = baseCurrency === "TWD" ? "台幣 TWD" : `${foreignCurrency.name} ${foreignUnit}`;
-  const rateBaseName = baseCurrency === "TWD" ? "台幣" : foreignCurrency.name;
-  const rateTargetName = targetCurrency === "TWD" ? "台幣" : foreignCurrency.name;
-  const targetSymbol = targetCurrency === "TWD" ? target.symbol : foreignCurrency.symbol;
-  const resultLabel = targetCurrency === "TWD" ? "約新台幣" : `約${foreignCurrency.name}`;
+  const baseLabel = getForeignCurrencyUnit(sourceCurrency);
+  const targetLabel = getForeignCurrencyUnit(targetDisplay);
+  const baseDisplayLabel = `${sourceCurrency.name} ${baseLabel}`;
+  const rateBaseName = sourceCurrency.name;
+  const rateTargetName = targetDisplay.name;
+  const targetSymbol = targetLabel;
+  const resultLabel = `約${targetDisplay.name}`;
   const amountSizeClass = getAmountSizeClass(amountInput);
   const amountInputRef = useRef<HTMLInputElement>(null);
   const displayAmount = amountInput ? formatDisplayAmount(amountInput) : "請輸入金額";

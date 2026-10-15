@@ -7,6 +7,7 @@ type FrankfurterPairResponse = {
 };
 
 const supportedReferenceCurrencies: ForeignCurrencyCode[] = [
+  "TWD",
   "JPY",
   "KRW",
   "USD",
@@ -21,15 +22,16 @@ export function canFetchReferenceRate(code: ForeignCurrencyCode): boolean {
   return supportedReferenceCurrencies.includes(code);
 }
 
-export async function fetchTwdReferenceRate(
-  foreignCurrencyCode: ForeignCurrencyCode,
+export async function fetchReferenceRate(
+  from: ForeignCurrencyCode,
+  to: ForeignCurrencyCode,
 ): Promise<number | null> {
-  if (!canFetchReferenceRate(foreignCurrencyCode)) {
+  if (!canFetchReferenceRate(from) || !canFetchReferenceRate(to)) {
     return null;
   }
 
   try {
-    const response = await fetch(`${apiBaseUrl}/rate/TWD/${foreignCurrencyCode}`);
+    const response = await fetch(`${apiBaseUrl}/rate/${from}/${to}`, { signal: AbortSignal.timeout(10000) });
 
     if (!response.ok) {
       return null;

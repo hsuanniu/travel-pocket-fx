@@ -1,4 +1,5 @@
 export type ForeignCurrencyCode =
+  | "TWD"
   | "JPY"
   | "KRW"
   | "USD"
@@ -17,6 +18,7 @@ export type ForeignCurrencyDisplay = {
 };
 
 export const foreignCurrencyOptions: ForeignCurrencyDisplay[] = [
+  { code: "TWD", flag: "🇹🇼", name: "台幣", symbol: "NT$" },
   { code: "JPY", flag: "🇯🇵", name: "日幣", symbol: "¥" },
   { code: "KRW", flag: "🇰🇷", name: "韓元", symbol: "₩" },
   { code: "USD", flag: "🇺🇸", name: "美金", symbol: "$" },

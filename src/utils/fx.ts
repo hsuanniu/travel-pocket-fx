@@ -1,7 +1,7 @@
 import type { CurrencyCode, ExchangeRate } from "../features/currency/currencyTypes";
 import type { ForeignCurrencyCode } from "./displayCurrency";
 
-export type FxDirection = "TWD_TO_JPY" | "JPY_TO_TWD";
+export type FxDirection = `${CurrencyCode}_TO_${CurrencyCode}`;
 
 export type FxAppState = {
   fromCurrency: CurrencyCode;
@@ -12,6 +12,7 @@ export type FxAppState = {
   foreignCurrencyCode: ForeignCurrencyCode;
   customForeignCurrencyName: string;
   splitTotalAmount: string;
+  splitCurrencyCode?: CurrencyCode;
   splitPeople: string;
   splitPayerName: string;
   splitItemName: string;
@@ -19,7 +20,7 @@ export type FxAppState = {
 };
 
 export function getDirection(fromCurrency: CurrencyCode, toCurrency: CurrencyCode): FxDirection {
-  return fromCurrency === "TWD" && toCurrency === "JPY" ? "TWD_TO_JPY" : "JPY_TO_TWD";
+  return `${fromCurrency}_TO_${toCurrency}`;
 }
 
 export function swapDirection(state: FxAppState): FxAppState {
@@ -30,6 +31,8 @@ export function swapDirection(state: FxAppState): FxAppState {
     ...state,
     fromCurrency,
     toCurrency,
+    splitCurrencyCode: fromCurrency,
+    exchangeRate: state.exchangeRate > 0 ? 1 / state.exchangeRate : 0,
     lastDirection: getDirection(fromCurrency, toCurrency),
   };
 }
@@ -58,29 +61,14 @@ export function convertFxAmount(
     return amount;
   }
 
-  if (fromCurrency === "TWD" && toCurrency === "JPY") {
-    return amount * exchangeRate;
-  }
-
-  return amount / exchangeRate;
-}
-
-export function convertForeignToTwd(foreignAmount: number, exchangeRate: number): number {
-  return convertFxAmount(foreignAmount, "JPY", "TWD", exchangeRate);
+  return amount * exchangeRate;
 }
 
 export function getActiveExchangeRate(state: FxAppState): ExchangeRate {
-  const directionRate =
-    state.fromCurrency === "TWD" && state.toCurrency === "JPY"
-      ? state.exchangeRate
-      : state.exchangeRate > 0
-        ? 1 / state.exchangeRate
-        : 0;
-
   return {
     base: state.fromCurrency,
     target: state.toCurrency,
-    rate: directionRate,
+    rate: state.exchangeRate,
     updatedAt: Date.now(),
     source: "manual",
   };

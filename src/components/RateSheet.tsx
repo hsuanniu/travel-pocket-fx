@@ -13,8 +13,8 @@ import { AppInput } from "./ui/AppInput";
 type RateSheetProps = {
   isOpen: boolean;
   rateInput: string;
-  foreignCurrency: ForeignCurrencyDisplay;
-  foreignCurrencyCode: ForeignCurrencyCode;
+  sourceCurrency: ForeignCurrencyDisplay;
+  targetCurrency: ForeignCurrencyDisplay;
   customForeignCurrencyName: string;
   activeExchangeRate: ExchangeRate;
   rateStatusMessage: string;
@@ -23,24 +23,25 @@ type RateSheetProps = {
   onClose: () => void;
   onRefreshReferenceRate: () => void;
   onSwapRateDirection: () => void;
-  onForeignCurrencyChange: (value: ForeignCurrencyCode) => void;
+  onFromCurrencyChange: (value: ForeignCurrencyCode) => void;
+  onToCurrencyChange: (value: ForeignCurrencyCode) => void;
   onCustomForeignCurrencyNameChange: (value: string) => void;
 };
 
 export function RateSheet({
   isOpen,
   rateInput,
-  foreignCurrency,
-  foreignCurrencyCode,
+  sourceCurrency,
+  targetCurrency,
   customForeignCurrencyName,
-  activeExchangeRate,
   rateStatusMessage,
   onRateChange,
   onSave,
   onClose,
   onRefreshReferenceRate,
   onSwapRateDirection,
-  onForeignCurrencyChange,
+  onFromCurrencyChange,
+  onToCurrencyChange,
   onCustomForeignCurrencyNameChange,
 }: RateSheetProps) {
   useEffect(() => {
@@ -68,12 +69,10 @@ export function RateSheet({
     return null;
   }
 
-  const foreignUnit = getForeignCurrencyUnit(foreignCurrency);
-  const isBaseTwd = activeExchangeRate.base === "TWD";
-  const baseName = isBaseTwd ? "台幣" : foreignCurrency.name;
-  const targetName = isBaseTwd ? foreignCurrency.name : "台幣";
-  const baseCode = isBaseTwd ? "TWD" : foreignUnit;
-  const targetCode = isBaseTwd ? foreignUnit : "TWD";
+  const baseName = sourceCurrency.name;
+  const targetName = targetCurrency.name;
+  const baseCode = getForeignCurrencyUnit(sourceCurrency);
+  const targetCode = getForeignCurrencyUnit(targetCurrency);
   const shouldShowRateStatus =
     Boolean(rateStatusMessage) && rateStatusMessage !== "每日參考匯率，可自行修改";
 
@@ -104,62 +103,23 @@ export function RateSheet({
             <small>主畫面會同步更新</small>
           </div>
           <div className="currency-direction-editor" aria-label="來源幣別與目標幣別">
-            <div className="sheet-section-label">來源幣別</div>
-            {isBaseTwd ? (
-              <div className="currency-fixed-value">
-                <span>🇹🇼</span>
-                <strong>台幣</strong>
-              </div>
-            ) : (
-              <label className="currency-select-label">
-                外幣
-                <select
-                  value={foreignCurrencyCode}
-                  onChange={(event) => onForeignCurrencyChange(event.target.value as ForeignCurrencyCode)}
-                >
-                  {foreignCurrencyOptions.map((currency) => (
-                    <option key={currency.code} value={currency.code}>
-                      {currency.flag} {currency.name}（{currency.code}）
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
-
-            <button
-              className="sheet-swap-button"
-              type="button"
-              onClick={onSwapRateDirection}
-              aria-label="交換來源與目標幣別"
-            >
-              <ArrowLeftRight size={16} />
-            </button>
-
-            <div className="sheet-section-label">目標幣別</div>
-            {isBaseTwd ? (
-              <label className="currency-select-label">
-                外幣
-                <select
-                  value={foreignCurrencyCode}
-                  onChange={(event) => onForeignCurrencyChange(event.target.value as ForeignCurrencyCode)}
-                >
-                  {foreignCurrencyOptions.map((currency) => (
-                    <option key={currency.code} value={currency.code}>
-                      {currency.flag} {currency.name}（{currency.code}）
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ) : (
-              <div className="currency-fixed-value">
-                <span>🇹🇼</span>
-                <strong>台幣</strong>
-              </div>
-            )}
+            <label className="currency-select-label">
+              來源幣別
+              <select value={sourceCurrency.code} onChange={event => onFromCurrencyChange(event.target.value as ForeignCurrencyCode)}>
+                {foreignCurrencyOptions.map(currency => <option key={currency.code} value={currency.code}>{currency.flag} {currency.name}（{currency.code}）</option>)}
+              </select>
+            </label>
+            <button className="sheet-swap-button" type="button" onClick={onSwapRateDirection} aria-label="交換來源與目標幣別"><ArrowLeftRight size={16} /></button>
+            <label className="currency-select-label">
+              目標幣別
+              <select value={targetCurrency.code} onChange={event => onToCurrencyChange(event.target.value as ForeignCurrencyCode)}>
+                {foreignCurrencyOptions.map(currency => <option key={currency.code} value={currency.code}>{currency.flag} {currency.name}（{currency.code}）</option>)}
+              </select>
+            </label>
           </div>
         </section>
 
-        {foreignCurrencyCode === "CUSTOM" && (
+        {(sourceCurrency.code === "CUSTOM" || targetCurrency.code === "CUSTOM") && (
           <label className="sheet-group custom-currency-field">
             自訂外幣名稱
             <AppInput
@@ -175,7 +135,7 @@ export function RateSheet({
             <span>今日匯率</span>
             <small>每日參考匯率，可自行修改</small>
           </div>
-          <button className="rate-refresh-button" type="button" onClick={onRefreshReferenceRate}>
+          <button className="rate-refresh-button" type="button" onClick={onRefreshReferenceRate} disabled={sourceCurrency.code === "CUSTOM" || targetCurrency.code === "CUSTOM"}>
             自動更新今日匯率
           </button>
           <div className="rate-manual-label">手動輸入匯率</div>
@@ -186,7 +146,7 @@ export function RateSheet({
               value={rateInput}
               onChange={(event) => onRateChange(event.target.value)}
               aria-label={`1 ${baseName}可換多少${targetName}`}
-              placeholder={isBaseTwd ? "例如：5.0761" : "例如：0.19753"}
+              placeholder="請輸入匯率"
               autoFocus
             />
             <span className="rate-side">{targetName}</span>
