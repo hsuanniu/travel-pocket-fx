@@ -6,6 +6,8 @@ export type SplitShareDetails = {
   date: string;
   sourceCurrencyName: string;
   targetCurrencyName: string;
+  sourceCurrencyCode?: string;
+  targetCurrencyCode?: string;
   rateBaseName: string;
   rateTargetName: string;
   displayExchangeRate: number;
@@ -16,46 +18,38 @@ export type SplitShareDetails = {
 };
 
 export function createSplitShareText(details: SplitShareDetails): string {
-  const payerName = details.payerName?.trim() ?? "";
+  const payerName = cleanText(details.payerName);
+  const itemName = cleanText(details.itemName);
+  const source = currencyLabel(details.sourceCurrencyCode, details.sourceCurrencyName);
+  const target = currencyLabel(details.targetCurrencyCode, details.targetCurrencyName);
   const hasConvertedEstimate = Number.isFinite(details.perPersonConverted) && Number(details.perPersonConverted) > 0;
   const hasRate = Number.isFinite(details.displayExchangeRate) && details.displayExchangeRate > 0;
-  const optionalLines = [
-    details.itemName?.trim() ? `消費項目：${details.itemName.trim()}` : null,
-    payerName ? `付款人：${payerName}` : null,
-    details.date ? `日期：${formatDateForShare(details.date)}` : null,
-  ].filter(Boolean);
-  const payerLines =
-    payerName && details.people > 1
-      ? [
-          `${payerName}已先支付${formatNumber(details.totalForeign)} ${details.sourceCurrencyName}`,
-          `其餘${formatNumber(details.people - 1)}人各需支付${formatNumber(details.perPersonForeign)} ${details.sourceCurrencyName}給${payerName}。`,
-        ]
-      : [];
-  const rateLines = hasRate
-    ? [
-        "",
-        `匯率：1 ${details.rateBaseName} = ${formatRateForShare(details.displayExchangeRate)} ${details.rateTargetName}`,
-      ]
-    : [];
+  // Separate labels and values so chat bubbles can wrap without splitting a sentence.
+  const sections: string[] = ["💰 費用分攤"];
+  if (itemName) sections.push(`消費項目\n${itemName}`);
+  if (details.date) sections.push(`日期：${formatDateForShare(cleanText(details.date))}`);
+  sections.push(`每人應付\n${source} ${formatNumber(details.perPersonForeign)}`);
+  if (hasConvertedEstimate) {
+    sections.push(`每人換算參考\n約 ${target} ${formatNumber(Number(details.perPersonConverted))}`);
+  }
+  sections.push(`總金額\n${source} ${formatNumber(details.totalForeign)}\n分攤人數：${formatNumber(details.people)} 人${payerName ? "（含付款人）" : ""}`);
+  if (payerName) {
+    sections.push(`付款人（已代付總額）\n${payerName}`);
+    if (details.people > 1) sections.push(`其餘 ${formatNumber(details.people - 1)} 人\n請各付上述「每人應付」金額\n給付款人。`);
+  }
+  if (hasRate) {
+    sections.push(`參考匯率\n1 ${source}\n= ${formatRateForShare(details.displayExchangeRate)} ${target}`);
+  }
+  sections.push("———\n🐮 No Bull. Just Math.");
+  return sections.join("\n\n");
+}
 
-  return [
-    "💰 費用分攤",
-    "",
-    ...optionalLines,
-    optionalLines.length > 0 ? "" : null,
-    `總金額：${formatNumber(details.totalForeign)} ${details.sourceCurrencyName}`,
-    `人數：${formatNumber(details.people)} 人`,
-    hasConvertedEstimate
-      ? `每人：${formatNumber(details.perPersonForeign)} ${details.sourceCurrencyName}（約 ${formatNumber(Number(details.perPersonConverted))} ${details.targetCurrencyName}）`
-      : `每人：${formatNumber(details.perPersonForeign)} ${details.sourceCurrencyName}`,
-    ...payerLines,
-    ...rateLines,
-    "",
-    "———",
-    "🐮 No Bull. Just Math.",
-  ]
-    .filter((line): line is string => line !== null)
-    .join("\n");
+function cleanText(value?: string): string {
+  return (value ?? "").replace(/\s+/gu, " ").trim();
+}
+
+function currencyLabel(code: string | undefined, name: string): string {
+  return code && code !== "CUSTOM" ? cleanText(code) : cleanText(name);
 }
 
 function formatRateForShare(value: number): string {

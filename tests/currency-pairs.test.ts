@@ -67,18 +67,48 @@ test("share labels original, converted, payer, and rate amounts consistently", (
   const details = {
     date: "2026-10-15", payerName: "Alex", sourceCurrencyName: "日幣 (JPY)",
     targetCurrencyName: "美金 (USD)", rateBaseName: "日幣 (JPY)",
+    sourceCurrencyCode: "JPY", targetCurrencyCode: "USD",
     rateTargetName: "美金 (USD)", displayExchangeRate: 0.0067,
     totalForeign: 4000, people: 4, perPersonForeign: 1000, perPersonConverted: 6.7,
   };
   const text = createSplitShareText(details);
-  assert.ok(text.includes("總金額：4,000 日幣 (JPY)"));
-  assert.ok(text.includes("每人：1,000 日幣 (JPY)（約 6.7 美金 (USD)）"));
-  assert.ok(text.includes("其餘3人各需支付1,000 日幣 (JPY)給Alex"));
-  assert.ok(text.includes("匯率：1 日幣 (JPY) = 0.0067 美金 (USD)"));
+  assert.ok(text.includes("總金額\nJPY 4,000"));
+  assert.ok(text.includes("每人應付\nJPY 1,000"));
+  assert.ok(text.includes("每人換算參考\n約 USD 6.7"));
+  assert.ok(text.includes("付款人（已代付總額）\nAlex"));
+  assert.ok(text.includes("其餘 3 人\n請各付上述「每人應付」金額\n給付款人。"));
+  assert.ok(text.includes("參考匯率\n1 JPY\n= 0.0067 USD"));
   assert.ok(!text.includes("台幣"));
   const withoutRate = createSplitShareText({ ...details, perPersonConverted: undefined, displayExchangeRate: 0 });
-  assert.ok(!withoutRate.includes("匯率："));
-  assert.ok(!withoutRate.includes("（約"));
+  assert.ok(!withoutRate.includes("參考匯率"));
+  assert.ok(!withoutRate.includes("每人換算參考"));
+});
+
+test("chat layout preserves long names, custom currency and large amounts without injected lines", () => {
+  const name = "Alex 陳大文 Very Long Family Name";
+  const text = createSplitShareText({
+    date: "2026-10-15", payerName: `  ${name}\n `,
+    itemName: "多人海外旅行的晚餐與交通費用\n第二天", sourceCurrencyName: "自訂旅行點數",
+    targetCurrencyName: "歐元", sourceCurrencyCode: "CUSTOM", targetCurrencyCode: "EUR",
+    rateBaseName: "自訂旅行點數", rateTargetName: "歐元", displayExchangeRate: 0,
+    totalForeign: 123456789000, perPersonForeign: 30864197250, people: 4,
+  });
+  assert.ok(text.includes(`付款人（已代付總額）\n${name}\n\n`));
+  assert.ok(text.includes("消費項目\n多人海外旅行的晚餐與交通費用 第二天"));
+  assert.ok(text.includes("自訂旅行點數 123,456,789,000"));
+  assert.ok(!text.includes("CUSTOM"));
+  assert.ok(!text.includes("\n\n\n"));
+});
+
+test("empty optional fields and a single person omit unnecessary payment instructions", () => {
+  const text = createSplitShareText({
+    date: "", payerName: "  ", itemName: "\n", sourceCurrencyName: "台幣",
+    targetCurrencyName: "歐元", sourceCurrencyCode: "TWD", targetCurrencyCode: "EUR",
+    rateBaseName: "台幣", rateTargetName: "歐元", displayExchangeRate: 0,
+    totalForeign: 2340, perPersonForeign: 2340, people: 1,
+  });
+  for (const omitted of ["付款人", "消費項目", "日期", "其餘", "換算參考", "參考匯率"]) assert.ok(!text.includes(omitted));
+  assert.ok(text.includes("每人應付\nTWD 2,340"));
 });
 
 test("reference API requests the selected pair and handles failures", async () => {
