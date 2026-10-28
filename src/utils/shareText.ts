@@ -26,7 +26,7 @@ export function createSplitShareText(details: SplitShareDetails): string {
   const hasRate = Number.isFinite(details.displayExchangeRate) && details.displayExchangeRate > 0;
   // Separate labels and values so chat bubbles can wrap without splitting a sentence.
   const sections: string[] = ["💰 費用分攤"];
-  if (itemName) sections.push(`消費項目\n${itemName}`);
+  if (itemName) sections.push(`費用用途\n${itemName}`);
   if (details.date) sections.push(`日期：${formatDateForShare(cleanText(details.date))}`);
   sections.push(`每人應付\n${source} ${formatNumber(details.perPersonForeign)}`);
   if (hasConvertedEstimate) {

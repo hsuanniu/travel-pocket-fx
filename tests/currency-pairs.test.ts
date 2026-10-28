@@ -117,7 +117,7 @@ test("chat layout preserves long names, custom currency and large amounts withou
     totalForeign: 123456789000, perPersonForeign: 30864197250, people: 4,
   });
   assert.ok(text.includes(`付款人（已代付總額）\n${name}\n\n`));
-  assert.ok(text.includes("消費項目\n多人海外旅行的晚餐與交通費用 第二天"));
+  assert.ok(text.includes("費用用途\n多人海外旅行的晚餐與交通費用 第二天"));
   assert.ok(text.includes("自訂旅行點數 123,456,789,000"));
   assert.ok(!text.includes("CUSTOM"));
   assert.ok(!text.includes("\n\n\n"));
@@ -130,7 +130,7 @@ test("empty optional fields and a single person omit unnecessary payment instruc
     rateBaseName: "台幣", rateTargetName: "歐元", displayExchangeRate: 0,
     totalForeign: 2340, perPersonForeign: 2340, people: 1,
   });
-  for (const omitted of ["付款人", "消費項目", "日期", "其餘", "換算參考", "參考匯率"]) assert.ok(!text.includes(omitted));
+  for (const omitted of ["付款人", "費用用途", "日期", "其餘", "換算參考", "參考匯率"]) assert.ok(!text.includes(omitted));
   assert.ok(text.includes("每人應付\nTWD 2,340"));
 });
 

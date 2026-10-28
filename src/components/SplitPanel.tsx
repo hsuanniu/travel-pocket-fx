@@ -134,6 +134,14 @@ export function SplitPanel({
         <div className="panel-body">
           <div className="premium-field-stack">
             <label className="premium-field">
+              費用用途（選填）
+              <AppInput
+                value={itemName}
+                onChange={(event) => onItemNameChange(event.target.value)}
+                placeholder="例如：晚餐、住宿、機場接送"
+              />
+            </label>
+            <label className="premium-field">
               付款人（選填）
               <AppInput
                 value={payerName}
@@ -171,14 +179,6 @@ export function SplitPanel({
           </button>
           {isMoreOpen && (
             <div className="optional-fields">
-              <label className="premium-field">
-                消費項目
-                <AppInput
-                  value={itemName}
-                  onChange={(event) => onItemNameChange(event.target.value)}
-                  placeholder="晚餐、超市、咖啡、計程車"
-                />
-              </label>
               <label className="premium-field">
                 日期
                 <AppInput
