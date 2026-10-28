@@ -17,6 +17,7 @@ export type FxAppState = {
   splitPayerName: string;
   splitItemName: string;
   splitDate: string;
+  splitDateMode?: "auto" | "manual";
 };
 
 export function getDirection(fromCurrency: CurrencyCode, toCurrency: CurrencyCode): FxDirection {

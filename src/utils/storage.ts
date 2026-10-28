@@ -2,6 +2,7 @@ import type { CurrencyCode, ExchangeRate } from "../features/currency/currencyTy
 import { foreignCurrencyOptions, type ForeignCurrencyCode } from "./displayCurrency";
 import type { FxAppState, FxDirection } from "./fx";
 import { getDirection } from "./fx";
+import { resolveSplitDate } from "./splitDate";
 
 const storagePrefix = "travel-pocket-fx";
 const legacyPrefix = "travel-smart-calculator";
@@ -21,6 +22,7 @@ const keys = {
   splitPayerName: `${storagePrefix}:splitPayerName`,
   splitItemName: `${storagePrefix}:splitItemName`,
   splitDate: `${storagePrefix}:splitDate`,
+  splitDateMode: `${storagePrefix}:splitDateMode`,
   rateSource: `${storagePrefix}:rateSource`,
   rateDate: `${storagePrefix}:rateDate`,
   currencyCode: `${storagePrefix}:currencyCode`,
@@ -90,6 +92,7 @@ function loadStoredAppState(): FxAppState {
       splitPayerName: readString(keys.splitPayerName) ?? defaultAppState.splitPayerName,
       splitItemName: readString(keys.splitItemName) ?? defaultAppState.splitItemName,
       splitDate: readString(keys.splitDate) ?? defaultAppState.splitDate,
+      splitDateMode: readString(keys.splitDateMode) === "manual" ? "manual" : "auto",
     };
   }
 
@@ -111,6 +114,7 @@ export function saveAppState(state: FxAppState): void {
   writeString(keys.splitPayerName, state.splitPayerName);
   writeString(keys.splitItemName, state.splitItemName);
   writeString(keys.splitDate, state.splitDate);
+  writeString(keys.splitDateMode, state.splitDateMode ?? "auto");
 }
 
 export function getTodayCacheDate(): string {
@@ -330,7 +334,8 @@ function getTodayInputValue(): string {
 
 export function loadAppState(): FxAppState {
   const isCurrent = readString(keys.stateVersion) === "2";
-  const state = loadStoredAppState();
+  const storedState = loadStoredAppState();
+  const state: FxAppState = { ...storedState, splitDateMode: storedState.splitDateMode ?? "auto", splitDate: resolveSplitDate(storedState.splitDate, storedState.splitDateMode) };
   if (isCurrent) return state;
   const fromCurrency = state.fromCurrency === "TWD" ? "TWD" : state.foreignCurrencyCode;
   const toCurrency = state.toCurrency === "TWD" ? "TWD" : state.foreignCurrencyCode;

@@ -4,12 +4,35 @@ import { convertFxAmount, swapDirection } from "../src/utils/fx";
 import { defaultAppState, loadAppState, saveAppState, loadPairRate, savePairRate } from "../src/utils/storage";
 import { createSplitShareText } from "../src/utils/shareText";
 import { fetchReferenceRate } from "../src/utils/rateApi";
+import { getLocalSplitDate, resolveSplitDate } from "../src/utils/splitDate";
+
+test("automatic split dates follow local midnight while manual dates stay unchanged", () => {
+  const before = new Date(2026, 9, 28, 23, 59);
+  const after = new Date(2026, 9, 29, 0, 1);
+  assert.equal(getLocalSplitDate(before), "2026/10/28");
+  assert.equal(resolveSplitDate("2026/10/28", "auto", after), "2026/10/29");
+  assert.equal(resolveSplitDate("2026/07/08", undefined, after), "2026/10/29");
+  assert.equal(resolveSplitDate("2026/07/08", "manual", after), "2026/07/08");
+  assert.equal(resolveSplitDate("", "manual", after), "");
+});
 
 const values = new Map<string, string>();
 globalThis.window = { localStorage: {
   getItem: (key: string) => values.get(key) ?? null,
   setItem: (key: string, value: string) => values.set(key, value),
 } } as unknown as Window & typeof globalThis;
+
+test("reload refreshes automatic dates but preserves explicit dates and amounts", () => {
+  values.clear();
+  saveAppState({ ...defaultAppState, splitDate: "2026/07/08", splitTotalAmount: "2340" });
+  assert.equal(loadAppState().splitDate, getLocalSplitDate());
+  assert.equal(loadAppState().splitTotalAmount, "2340");
+  values.delete("travel-pocket-fx:splitDateMode");
+  assert.equal(loadAppState().splitDate, getLocalSplitDate());
+  saveAppState({ ...loadAppState(), splitDate: "2026/07/08", splitDateMode: "manual" });
+  assert.equal(loadAppState().splitDate, "2026/07/08");
+  assert.equal(loadAppState().splitDateMode, "manual");
+});
 
 test("arbitrary pairs convert, swap, and round trip without a TWD base", () => {
   assert.equal(convertFxAmount(100, "USD", "JPY", 150), 15000);

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { getForeignCurrencyDisplay, type ForeignCurrencyCode } from "../utils/displayCurrency";
 import { convertFxAmount, getActiveExchangeRate, getDirection, normalizeExchangeRate, swapDirection as swapFxDirection, type FxAppState } from "../utils/fx";
 import { toNumber } from "../utils/numberInput";
+import { resolveSplitDate } from "../utils/splitDate";
 import { canFetchReferenceRate, fetchReferenceRate } from "../utils/rateApi";
 import { getTodayCacheDate, loadAppState, loadPairRate, saveAppState, savePairRate } from "../utils/storage";
 
@@ -16,6 +17,28 @@ export function useCalculatorStore() {
   stateRef.current = appState;
 
   useEffect(() => { saveAppState(appState); }, [appState]);
+
+  useEffect(() => {
+    const syncDate = () => {
+      setAppState(current => {
+        const splitDate = resolveSplitDate(current.splitDate, current.splitDateMode);
+        return splitDate === current.splitDate ? current : { ...current, splitDate };
+      });
+    };
+    // Refresh after suspension and across midnight without changing a manually chosen date.
+    const onVisibilityChange = () => { if (document.visibilityState === "visible") syncDate(); };
+    window.addEventListener("focus", syncDate);
+    window.addEventListener("pageshow", syncDate);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    const timer = window.setInterval(syncDate, 1000);
+    syncDate();
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", syncDate);
+      window.removeEventListener("pageshow", syncDate);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, []);
 
   useEffect(() => {
     const { fromCurrency: from, toCurrency: to } = appState;
@@ -108,7 +131,7 @@ export function useCalculatorStore() {
     setSplitPeople: (value: string) => update("splitPeople", value),
     setSplitPayerName: (value: string) => update("splitPayerName", value),
     setSplitItemName: (value: string) => update("splitItemName", value),
-    setSplitDate: (value: string) => update("splitDate", value),
+    setSplitDate: (value: string) => setAppState(current => ({ ...current, splitDate: value, splitDateMode: "manual" })),
   };
 }
 function displayRate(rate: number): string {
